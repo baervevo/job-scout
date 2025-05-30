@@ -1,0 +1,50 @@
+# Bytecode and cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Editor/IDE junk
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python test artifacts
+*.log
+.coverage
+htmlcov/
+.cache/
+.tox/
+pytest_cache/
+nosetests.xml
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Docker
+*.pid
+*.sock
+*.tar
+docker-compose.override.yml
+**/db_data/
+**/__pycache__/
+
+# Poetry files not to track
+poetry.lock
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+
+# VSCode settings
+*.code-workspace
