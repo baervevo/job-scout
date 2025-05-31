@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   backend:
     build:
@@ -22,3 +20,19 @@ services:
     volumes:
       - ./frontend:/app
     restart: unless-stopped
+
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db_data:
