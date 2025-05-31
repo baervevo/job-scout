@@ -48,3 +48,6 @@ build/
 
 # VSCode settings
 *.code-workspace
+
+# Local configuration files
+.env
