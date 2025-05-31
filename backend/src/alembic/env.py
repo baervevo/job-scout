@@ -1,4 +1,4 @@
-from src.config import settings
+from config import settings
 
 from src.db.base import Base
 from src.db.schemas.cv import CV
