@@ -1,5 +1,4 @@
-from dotenv import load_dotenv
-import os
+from src.config import settings
 
 from src.db.base import Base
 from src.db.schemas.cv import CV
@@ -13,9 +12,6 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-
-load_dotenv("../.env")
-load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -50,9 +46,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = os.getenv("POSTGRES_URL")
     context.configure(
-        url=url,
+        url=settings.POSTGRES_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -69,13 +64,11 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    url = os.getenv("POSTGRES_URL")
-    print(f"Using database URL: {url}")
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        url=url,
+        url=settings.POSTGRES_URL,
     )
 
     with connectable.connect() as connection:
