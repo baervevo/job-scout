@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     
     JOOBLE_API_KEY: str = Field(..., env='JOOBLE_API_KEY')
     JOOBLE_HOST: str = "https://jooble.org"
+    JOOBLE_SCRAPER_INTERVAL: float = Field(60.0, env='JOOBLE_SCRAPER_INTERVAL')
 
     LOGGING_LEVEL: int = logging.INFO
     LOGGING_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

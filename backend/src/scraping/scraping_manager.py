@@ -1,0 +1,1 @@
+# TODO(@mariusz): Implement scraping manager which will manage all scrapers and insert their results into db.

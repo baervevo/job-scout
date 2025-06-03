@@ -1,6 +1,9 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Tuple, Optional
 
 class Query(BaseModel):
-	keywords: List[str]
-	location: Optional[str]
+    keywords: Tuple[str]
+    location: Optional[str]
+
+    class Config:
+        frozen = True
