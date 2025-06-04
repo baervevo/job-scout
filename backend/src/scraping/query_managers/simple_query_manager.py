@@ -8,7 +8,7 @@ class SimpleQueryManager(QueryManager):
     _queries: Set[Query]
 
     def __init__(self):
-        self._queries = []
+        self._queries = set()
 
     def add_query(self, query: Query) -> None:
         self._queries.add(query)
