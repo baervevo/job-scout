@@ -16,3 +16,4 @@ class Listing(Base):
     salary_max = Column(Float)
     currency = Column(String)
     location = Column(String)
+    link = Column(String)

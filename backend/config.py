@@ -21,11 +21,11 @@ class Settings(BaseSettings):
 
     @property
     def POSTGRES_URL(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
+    JOOBLE_SCRAPING_INTERVAL: int = Field(5, env='JOOBLE_SCRAPING_INTERVAL')  # in minutes
     JOOBLE_API_KEY: str = Field(..., env='JOOBLE_API_KEY')
     JOOBLE_HOST: str = "https://jooble.org"
-    JOOBLE_SCRAPER_INTERVAL: float = Field(60.0, env='JOOBLE_SCRAPER_INTERVAL') # seconds
 
     LOGGING_LEVEL: int = logging.INFO
     LOGGING_FORMAT: str = "%(name)s @ %(asctime)s [%(levelname)s]: %(message)s"

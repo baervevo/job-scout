@@ -1,8 +1,11 @@
+from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 from sqlalchemy.orm import sessionmaker, Session
 from typing import AsyncGenerator
 
 from config import settings
+
+from src.utils.logger import logger
 
 engine: AsyncEngine = create_async_engine(settings.POSTGRES_URL, echo=True)
 AsyncSessionLocal: sessionmaker[AsyncSession] = sessionmaker(
@@ -11,6 +14,8 @@ AsyncSessionLocal: sessionmaker[AsyncSession] = sessionmaker(
     expire_on_commit=False
 )
 
-async def get_db() -> AsyncGenerator[Session, None, None]:
+@asynccontextmanager
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
+        logger.info("Database session created.")
         yield session

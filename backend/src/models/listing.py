@@ -13,4 +13,5 @@ class Listing(BaseModel):
     salary_max: Optional[float]
     currency: Optional[str]
     location: Optional[str]
+    link: Optional[str]
     
