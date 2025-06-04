@@ -6,6 +6,7 @@ from src.models.listing import Listing
 from src.models.query import Query
 from src.utils.logger import logger
 from src.utils.salary import parse_salary_range
+from dateutil import parser
 
 class JoobleScraper(ListingScraper):
     _api_key: str
@@ -17,7 +18,7 @@ class JoobleScraper(ListingScraper):
 
     async def execute_query(self, query: Query) -> List[Listing]:
         logger.info(f"Executing query: {query}")
-        url = f"http://{self._target_host}/api/{self._api_key}"
+        url = f"{self._target_host}/api/{self._api_key}"
         payload = {
             "keywords": ", ".join(query.keywords),
             "location": query.location
@@ -36,7 +37,7 @@ class JoobleScraper(ListingScraper):
         for job in data.get("jobs", []):
             salary_min, salary_max, currency = parse_salary_range(job.get("salary"))
             listings.append(Listing(
-                id=str(job.get("id")),
+                internal_id=str(job.get("id")),
                 title=job.get("title", ""),
                 company=job.get("company", ""),
                 location=job.get("location", ""),
@@ -45,9 +46,8 @@ class JoobleScraper(ListingScraper):
                 salary_max=salary_max,
                 currency=currency,
                 remote="remote" in job.get("location", "").lower(),
-                created_at=job.get("updated", ""),
-                updated_at=job.get("updated", ""),
+                created_at=parser.isoparse(job.get("updated", "")),
+                updated_at=parser.isoparse(job.get("updated", "")),
                 link=job.get("link", "")
             ))
-        logger.info(f"Parsed {len(listings)} listings.")
         return listings

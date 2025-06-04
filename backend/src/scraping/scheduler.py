@@ -1,4 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from src.utils.logger import logger
 
@@ -16,7 +17,7 @@ def start_scheduler():
     for name, manager in get_scraper_registry().items():
         _scraping_scheduler.add_job(
             manager.run_scraper,
-            trigger=IntervalTrigger(seconds=5),
+            trigger=CronTrigger(hour=0, minute=0, second=0),
             id=f"{name}_scraper_job",
             name=f"Run {name} scraper",
             replace_existing=True,

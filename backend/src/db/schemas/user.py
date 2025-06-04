@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 
 from src.db.base import Base
 
@@ -8,3 +9,5 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     login = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
+
+    cvs = relationship("CV", back_populates="user", cascade="all, delete-orphan")

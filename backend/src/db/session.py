@@ -8,7 +8,7 @@ from config import settings
 from src.utils.logger import logger
 
 engine: AsyncEngine = create_async_engine(settings.POSTGRES_URL, echo=True)
-AsyncSessionLocal: sessionmaker[AsyncSession] = sessionmaker(
+async_session_maker: sessionmaker[AsyncSession] = sessionmaker(
     engine, 
     class_=AsyncSession,
     expire_on_commit=False
@@ -16,6 +16,6 @@ AsyncSessionLocal: sessionmaker[AsyncSession] = sessionmaker(
 
 @asynccontextmanager
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
+    async with async_session_maker() as session:
         logger.info("Database session created.")
         yield session

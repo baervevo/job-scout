@@ -1,14 +1,15 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class Listing(BaseModel):
-    id: Optional[int]
+    internal_id: Optional[str]
     title: str
     company: str
     description: str
     remote: bool
-    created_at: Optional[str]
-    updated_at: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
     salary_min: Optional[float]
     salary_max: Optional[float]
     currency: Optional[str]
