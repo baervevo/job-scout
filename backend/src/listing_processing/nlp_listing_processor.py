@@ -1,21 +1,25 @@
 import spacy
 
 from src.models.listing import Listing
-from src.models.processed_listing import *
+from src.models.nlp_processed_listing import *
+from src.utils.description import clean_html_text
 
 
-class ListingProcessor:
+# DEPRECATED: This module is deprecated and will be removed in a future release.
+class NLPListingProcessor:
     def __init__(self):
         self._skill_keywords = {
             "required": ["requirements", "must have", "required"],
             "preferred": ["preferred", "nice to have", "bonus"]
         }
 
-    async def process_listing(self, listing: Listing) -> ProcessedListing:
+    async def process_listing(self, listing: Listing) -> NLPProcessedListing:
         """Process a raw listing into structured keywords"""
         title_keywords = self._extract_keywords(listing.title, "title", SkillType.TITLE)
         company_keywords = self._extract_keywords(listing.company, "company", SkillType.COMPANY)
-        desc_keywords = self._extract_keywords(listing.description, "description", SkillType.DESCRIPTION)
+
+        clean_desc = clean_html_text(listing.description)
+        desc_keywords = self._extract_keywords(clean_desc, "description", SkillType.DESCRIPTION)
 
         all_keywords = title_keywords + company_keywords + desc_keywords
 
@@ -30,7 +34,7 @@ class ListingProcessor:
             "updated_at": listing.updated_at
         }
 
-        return ProcessedListing(
+        return NLPProcessedListing(
             internal_id=listing.internal_id,
             keywords=self._deduplicate_keywords(all_keywords),
             metadata=metadata,
