@@ -1,26 +1,27 @@
-from src.utils.logger import logger
+from typing import List
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.db.schemas.company import Company as CompanySchema
+from src.db.schemas.listing import Listing as ListingSchema
+from src.db.session import async_session_maker
+from src.listing_processing.listing_processor import ListingProcessor
+from src.models.listing import Listing
+from src.models.processed_listing import ProcessedListing
 from src.scraping.query_managers.query_manager import QueryManager
 from src.scraping.scrapers.listing_scraper import ListingScraper
+from src.utils.logger import logger
 
-from src.models.listing import Listing
-from src.db.session import async_session_maker
-from src.db.schemas.listing import Listing as ListingSchema
-from src.db.schemas.company import Company as CompanySchema
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-
-from typing import List
 
 class ScrapingManager:
     _scraper: ListingScraper
     _query_manager: QueryManager
 
     def __init__(
-        self,
-        scraper: ListingScraper,
-        query_manager: QueryManager
+            self,
+            scraper: ListingScraper,
+            query_manager: QueryManager
     ):
         self._scraper = scraper
         self._query_manager = query_manager
@@ -29,6 +30,10 @@ class ScrapingManager:
         async with async_session_maker() as db_session:
             for query in self._query_manager.get_queries():
                 listings = await self._scraper.execute_query(query)
+
+                # TODO: save processed listings
+                processed_listings = await self.transform_to_processed_listings(listings)
+
                 if listings:
                     await self._save_listings(listings, db_session)
 
@@ -52,3 +57,17 @@ class ScrapingManager:
         data = listing.model_dump(exclude={"company"}, exclude_unset=True)
         data["company_id"] = company.id
         return ListingSchema(**data)
+
+    async def transform_to_processed_listings(self, listings: List[Listing]) -> List[ProcessedListing]:
+        """
+        Transforms a list of Listing objects into a list of ProcessedListing objects.
+        """
+        processor = ListingProcessor()
+        processed_listings = []
+        for listing in listings:
+            logger.info(f"Processing raw listing: {listing.internal_id}")
+            logger.debug(listing)
+            processed = await processor.process_listing(listing)
+            logger.info(f"Finished processing listing: {processed.internal_id} with keywords: {processed.keywords}")
+            processed_listings.append(processed)
+        return processed_listings

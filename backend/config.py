@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     JOOBLE_API_KEY: str = Field(..., env='JOOBLE_API_KEY')
     JOOBLE_HOST: str = "https://jooble.org"
 
-    LOGGING_LEVEL: int = logging.INFO
+    LOGGING_LEVEL: int = logging.DEBUG
     LOGGING_FORMAT: str = "%(name)s @ %(asctime)s [%(levelname)s]: %(message)s"
     
 settings = Settings()
