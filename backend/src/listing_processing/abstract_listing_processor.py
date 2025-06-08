@@ -16,10 +16,3 @@ class AbstractListingProcessor(ABC):
         Process a list of listings and return a list of processed listings.
         """
         pass
-
-    @abstractmethod
-    async def process_single_listing(self, listing: Listing) -> ProcessedListing:
-        """
-        Process a single listing and return a processed listing.
-        """
-        pass

@@ -17,7 +17,7 @@ def init_scraper_registry():
         settings.JOOBLE_HOST
     )
     manager = SimpleQueryManager()
-    manager.add_query(Query(keywords=["python", "developer"], location="remote"))
+    manager.add_query(Query(keywords=["java", "developer"], location="remote"))
 
     _scraper_registry["jooble"] = ScrapingManager(
         scraper=jooble,

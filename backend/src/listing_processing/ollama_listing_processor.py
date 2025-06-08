@@ -5,7 +5,7 @@ from typing import List
 from src.listing_processing.abstract_listing_processor import AbstractListingProcessor
 from src.models.listing import Listing
 from src.models.processed_listing import ProcessedListing
-from src.prompts.job_details import PROMPT
+from src.prompts.job_details import PROMPT as LISTING_PROCESSING_PROMPT
 from src.utils.description import clean_html_text
 from src.utils.logger import logger
 
@@ -15,6 +15,9 @@ class OllamaListingProcessor(AbstractListingProcessor):
     Concrete implementation of AbstractListingProcessor using the Ollama LLM.
     """
 
+    def __init__(self, model_name: str = "llama2"):
+        self.model_name = model_name
+
     async def process_listings(self, listings: List[Listing]) -> List[ProcessedListing]:
         """
         Processes a list of raw listings into structured processed listings.
@@ -22,22 +25,22 @@ class OllamaListingProcessor(AbstractListingProcessor):
         processed_listings = []
 
         for listing in listings:
-            processed_listing = await self.process_single_listing(listing)
+            processed_listing = await self._process_single_listing(listing)
             processed_listings.append(processed_listing)
 
         return processed_listings
 
-    async def process_single_listing(self, listing: Listing) -> ProcessedListing:
+    async def _process_single_listing(self, listing: Listing) -> ProcessedListing:
         """
         Processes a single listing using the Ollama LLM to extract structured information.
         """
         job_description = clean_html_text(listing.description)
         logger.debug(f"Processing listing {listing.internal_id} with description: {job_description[:100]}...")
-        prompt = PROMPT.format(job_description)
+        prompt = LISTING_PROCESSING_PROMPT.format(job_description)
 
         try:
             result = subprocess.run(
-                ["ollama", "run", "llama2"],
+                ["ollama", "run", self.model_name],
                 input=prompt,
                 capture_output=True,
                 text=True,

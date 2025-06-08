@@ -10,15 +10,9 @@ class AbstractResumeProcessor(ABC):
     """
 
     @abstractmethod
-    async def process_resumes(self, raw_texts: List[str]) -> List[ProcessedResume]:
+    async def process_resumes(self, raw_resumes: List[str]) -> List[ProcessedResume]:
         """
         Process a list of extracted raw strings and return a list of processed resumes.
         """
         pass
 
-    @abstractmethod
-    async def process_single_resume(self, raw_text: str) -> ProcessedResume:
-        """
-        Process an extracted raw text and return a processed resume.
-        """
-        pass
