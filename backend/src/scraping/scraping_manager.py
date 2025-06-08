@@ -6,14 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.schemas.company import Company as CompanySchema
 from src.db.schemas.listing import Listing as ListingSchema
 from src.db.session import async_session_maker
-from src.listing_processing.nlp_listing_processor import NLPListingProcessor
-from src.listing_processing.ollama_listing_processing import process_listings
+from src.listing_processing.ollama_listing_processor import OllamaListingProcessor
 from src.models.listing import Listing
-from src.models.nlp_processed_listing import NLPProcessedListing
-from src.models.processed_listing import ProcessedListing
 from src.scraping.query_managers.query_manager import QueryManager
 from src.scraping.scrapers.listing_scraper import ListingScraper
-from src.utils.logger import logger
 
 
 class ScrapingManager:
@@ -33,8 +29,9 @@ class ScrapingManager:
             for query in self._query_manager.get_queries():
                 listings = await self._scraper.execute_query(query)
 
+                processor = OllamaListingProcessor()
+                processed_listings = await processor.process_listings(listings)
                 # TODO: save processed listings
-                processed_listings = await process_listings(listings)
 
                 if listings:
                     await self._save_listings(listings, db_session)

@@ -2,7 +2,8 @@ PROMPT = """
 You are a JSON-extraction engine. Convert the following raw job description text into exactly the JSON schema below:
 — Do not add any extra fields or prose.
 — Do not change the structure or key names; output only valid JSON matching the schema.
-- Use only the data provided in the job description.
+- Do not include any information that is not in the description.
+- If there is no significant information for a field, return an empty list.
 
 Schema:
 {{
