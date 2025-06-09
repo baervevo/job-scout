@@ -51,3 +51,6 @@ build/
 
 # Local configuration files
 .env
+
+#pdf resume files
+*.pdf

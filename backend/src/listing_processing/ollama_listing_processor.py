@@ -6,7 +6,7 @@ from src.listing_processing.abstract_listing_processor import AbstractListingPro
 from src.models.listing import Listing
 from src.models.processed_listing import ProcessedListing
 from src.prompts.job_details import PROMPT as LISTING_PROCESSING_PROMPT
-from src.utils.description import clean_html_text
+from src.utils.processing import clean_html_text
 from src.utils.logger import logger
 
 
@@ -35,9 +35,9 @@ class OllamaListingProcessor(AbstractListingProcessor):
         Processes a single listing using the Ollama LLM to extract structured information.
         """
         job_description = clean_html_text(listing.description)
-        logger.debug(f"Processing listing {listing.internal_id} with description: {job_description[:100]}...")
         prompt = LISTING_PROCESSING_PROMPT.format(job_description)
 
+        logger.debug(f"Processing listing {listing.internal_id} with description: {job_description}...")
         try:
             result = subprocess.run(
                 ["ollama", "run", self.model_name],
@@ -46,9 +46,6 @@ class OllamaListingProcessor(AbstractListingProcessor):
                 text=True,
                 encoding="utf-8"
             )
-        except subprocess.TimeoutExpired as e:
-            logger.error(f"Ollama request timed out for listing {listing.internal_id}: {e}")
-            result = None
         except Exception as e:
             logger.error(f"Unexpected error with subprocess for listing {listing.internal_id}: {e}")
             result = None
