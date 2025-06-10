@@ -1,3 +1,4 @@
+# DEPRECATED
 PROMPT = """
 You are a JSON-extraction engine. Convert the following raw resume text into exactly the JSON schema below:
 — Do not add any extra fields or prose.

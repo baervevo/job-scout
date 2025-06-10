@@ -1,3 +1,6 @@
+"""
+Prompt for extracting relevant keywords from job listings
+"""
 PROMPT = """
 You are a keyword extraction engine. Convert the following raw resume text into 10 keywords:
 - Output ONLY the keywords related to necessary skills, experience, education, and certifications.

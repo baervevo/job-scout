@@ -10,4 +10,4 @@ class User(Base):
     login = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
 
-    cvs = relationship("CV", back_populates="user", cascade="all, delete-orphan")
+    resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")

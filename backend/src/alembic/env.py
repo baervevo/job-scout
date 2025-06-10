@@ -1,7 +1,7 @@
 from config import settings
 
 from src.db.base import Base
-from src.db.schemas.cv import CV
+from src.db.schemas.resume import Resume
 from src.db.schemas.company import Company
 from src.db.schemas.user import User
 from src.db.schemas.listing import Listing

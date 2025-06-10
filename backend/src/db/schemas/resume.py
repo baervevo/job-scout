@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 
 from src.db.base import Base
 
-class CV(Base):
-    __tablename__ = 'cvs'
+class Resume(Base):
+    __tablename__ = 'resumes'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)

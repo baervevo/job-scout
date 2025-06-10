@@ -2,19 +2,20 @@ import asyncio
 
 import torch
 
-from src.listing_processing.listing_nlp_processor import NLPListingProcessor
-from src.models.listing import Listing
-from src.models.raw_resume import RawResume
+from src.models.listing.listing import Listing
+from src.models.resume.resume import Resume
+from src.processing.listing_processor import ListingProcessor
+from src.processing.resume_processor import ResumeProcessor
 from src.prompts.job_matching import PROMPT as JOB_MATCHING_PROMPT
-from src.resume_processing.nlp_resume_processor import NLPResumeProcessor
-from src.utils.processing import ollama_api_call
-from src.utils.resume_extraction import extract_text_from_pdf
+from src.utils.pdf import extract_text_from_pdf
+from src.utils.processing_utils import ollama_api_call
 
 
 async def main():
     resume_path = r"C:\Users\mateu\PycharmProjects\JSProject\job-scout\resources\Berlin-Simple-Resume-Template.pdf"
     resume_text = extract_text_from_pdf(resume_path)
-    resume = RawResume(content=resume_text, internal_id="47")
+    resume = Resume(content=resume_text, internal_id="47", file_path=resume_path,
+                    file_name="Berlin-Simple-Resume-Template.pdf")
 
     listing = Listing(internal_id="123", title="Software Engineer", company="Tech Company", remote=False,
                       description=r"Strong Java, Spring and TypeScript skills Performing code review for peers Experience in Unit Testing,"
@@ -26,8 +27,8 @@ async def main():
                                   r"Self-management and strong prioritization skills"
                                   r"Capability to work in agile environment without direct supervision")
 
-    listing_processor = NLPListingProcessor()
-    resume_processor = NLPResumeProcessor()
+    listing_processor = ListingProcessor()
+    resume_processor = ResumeProcessor()
 
     processed_listings = await listing_processor.process_listings([listing])
 
@@ -39,7 +40,7 @@ async def main():
     print("Processed Listings Keywords:{}".format(processed_listings_text))
 
     prompt = JOB_MATCHING_PROMPT.format(processed_resumes_text, processed_listings_text)
-    result = ollama_api_call('llama2', prompt).lower().strip()
+    result = ollama_api_call(prompt).lower().strip()
     print(result)
 
     vec1 = torch.tensor(processed_listings[0].embedding)

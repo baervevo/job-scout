@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from src.models.listing import Listing
+from src.models.listing.listing import Listing
 from src.models.query import Query
 
 class ListingScraper(ABC):

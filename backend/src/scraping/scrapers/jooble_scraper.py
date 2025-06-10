@@ -2,7 +2,7 @@ import httpx
 from typing import List
 
 from src.scraping.scrapers.listing_scraper import ListingScraper
-from src.models.listing import Listing
+from src.models.listing.listing import Listing
 from src.models.query import Query
 from src.utils.logger import logger
 from src.utils.salary import parse_salary_range
