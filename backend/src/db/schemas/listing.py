@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 
 from src.db.base import Base
 
@@ -19,5 +20,8 @@ class Listing(Base):
     currency = Column(String)
     location = Column(String)
     link = Column(String)
+    keywords = Column(String)
+    embedding = Column(Vector(1536))
+    scraped_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="listings")

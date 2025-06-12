@@ -18,7 +18,7 @@ class ListingProcessor(Processor):
         processed_listings = []
 
         for listing in listings:
-            processed_listing = await self._process_single_listing(listing)
+            processed_listing = await self._process_listing(listing)
             processed_listings.append(processed_listing)
 
         return processed_listings

@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     def POSTGRES_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
-    JOOBLE_SCRAPING_INTERVAL: int = Field(5, env='JOOBLE_SCRAPING_INTERVAL')  # in minutes
     JOOBLE_API_KEY: str = Field(..., env='JOOBLE_API_KEY')
     JOOBLE_HOST: str = "https://jooble.org"
 
