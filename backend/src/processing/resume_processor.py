@@ -1,17 +1,16 @@
 from typing import List
 
-from src.constants.processing_constants import DEFAULT_RESUME_KW_TOP_N, DEFAULT_RESUME_KW_NUM_CANDIDATES
 from src.models.resume.resume import Resume
 from src.models.resume.resume_keyword_data import ResumeKeywordData
 from src.processing.processor import Processor
-from src.prompts.resume_keywords import PROMPT as PROMPT_RESUME_KEYWORDS
+from src.prompts.llama2.resume_keywords import PROMPT as PROMPT_RESUME_KEYWORDS
 from src.utils.logger import logger
-from src.utils.processing_utils import ollama_api_call, format_lines
+from src.utils.processing_utils import ollama_api_call, format_keywords, kw_text_to_list
 
 
 class ResumeProcessor(Processor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     async def process_resumes(self, resumes: List[Resume]) -> List[ResumeKeywordData]:
         processed_resumes = []
@@ -23,27 +22,27 @@ class ResumeProcessor(Processor):
         return processed_resumes
 
     async def _process_single_resume(self, resume: Resume) -> ResumeKeywordData:
-        logger.debug(f"Raw resume {resume.internal_id}: {resume.content}.")
+        # logger.debug(f"Raw resume {resume.internal_id}: {resume.content}.")
 
         prompt = PROMPT_RESUME_KEYWORDS.format(resume.content)
-        resume_content_llm_processed = ollama_api_call('llama2', prompt).lower().strip()
+        resume_content_llm_processed = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
         logger.debug(f"Resume{resume.internal_id} processed with llm: {resume_content_llm_processed}.")
 
-        resume_content_clean = format_lines(resume_content_llm_processed)
-        logger.debug(f"Resume {resume.internal_id} cleaned with regex: {resume_content_clean}.")
+        resume_kw = format_keywords(resume_content_llm_processed)
+        # logger.debug(f"Resume {resume.internal_id} cleaned with regex: {resume_kw}.")
 
-        resume_keywords = self.extract_keywords(resume_content_clean, top_n=DEFAULT_RESUME_KW_TOP_N,
-                                                nr_candidates=DEFAULT_RESUME_KW_NUM_CANDIDATES)
-        resume_vec = self.embed_text(resume_content_clean)
+        kw_nlp_list = self.extract_keywords(resume_kw, top_n=30, nr_candidates=60, ngram_max=1)
+        kw_normal_list = kw_text_to_list(resume_kw)
+        kw_list = kw_nlp_list + kw_normal_list
+        logger.debug(f"Resume {resume.internal_id} as a keyword list: {kw_list}.")
 
-        logger.info(
-            f"Processed resume {resume.internal_id} with {len(resume_keywords)} keywords.")
-
+        resume_vec = self.embed_text(resume_kw)
         resume_vec_converted = resume_vec.tolist()
+
         return ResumeKeywordData(internal_id=resume.internal_id,
                                  user_id=resume.user_id,
                                  file_name=resume.file_name,
                                  file_path=resume.file_path,
-                                 content=resume_content_clean,
-                                 keywords=resume_keywords,
+                                 content=resume.content,
+                                 keywords=kw_list,
                                  embedding=resume_vec_converted)

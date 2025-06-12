@@ -7,9 +7,12 @@ from torch import Tensor
 
 
 class Processor(ABC):
-    def __init__(self, nlp_model_name="en_core_web_sm",
+    def __init__(self,
+                 llm_model_name="llama2",
+                 nlp_model_name="en_core_web_sm",
                  kw_model_name="all-MiniLM-L6-v2",
                  embed_model_name="all-MiniLM-L6-v2"):
+        self.llm_model_name = llm_model_name
         self.nlp_spacy = spacy.load(nlp_model_name)
         self.kw_model = KeyBERT(model=kw_model_name)
         self.embed_model = SentenceTransformer(embed_model_name)
