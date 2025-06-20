@@ -2,6 +2,7 @@ from typing import Dict
 
 from config import settings
 from src.models.query import Query
+from src.processing.listing_processor import ListingProcessor
 from src.scraping.query_managers.simple_query_manager import SimpleQueryManager
 from src.scraping.scrapers.jooble_scraper import JoobleScraper
 from src.scraping.scraping_manager import ScrapingManager
@@ -17,11 +18,14 @@ def init_scraper_registry():
         settings.JOOBLE_HOST
     )
     manager = SimpleQueryManager()
+    listing_processor = ListingProcessor()
     manager.add_query(Query(keywords=["java", "developer"], location="remote"))
 
     _scraper_registry["jooble"] = ScrapingManager(
         scraper=jooble,
-        query_manager=manager)
+        query_manager=manager,
+        listing_processor=listing_processor
+    )
 
 
 def get_scraper_registry() -> Dict[str, ScrapingManager]:

@@ -3,7 +3,7 @@ Prompt for extracting relevant keywords from job listings
 """
 PROMPT = """
 [INST] <<SYS>>
-You are a keyword extraction engine. Extract exactly 5 keywords from the given resume text.
+You are a keyword extraction engine. Extract exactly 5 keywords from the given listing text.
 - Output ONLY the keywords related to necessary skills, experience, education, and certifications.
 - Focus on tech skills, programming languages, frameworks, tools, and relevant qualifications.
 - Do NOT include any contact information, section headers, or irrelevant details.

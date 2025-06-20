@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import List
 
 import spacy
 from keybert import KeyBERT
@@ -8,7 +9,7 @@ from torch import Tensor
 
 class Processor(ABC):
     def __init__(self,
-                 llm_model_name="llama2",
+                 llm_model_name="llama3",
                  nlp_model_name="en_core_web_sm",
                  kw_model_name="all-MiniLM-L6-v2",
                  embed_model_name="all-MiniLM-L6-v2"):
@@ -41,3 +42,17 @@ class Processor(ABC):
 
     def embed_text(self, text: str) -> Tensor:
         return self.embed_model.encode(text)
+
+    def tokenize_sentences(self, text: str) -> List[str]:
+        doc = self.nlp_spacy(text)
+        return [sent.text.strip() for sent in doc.sents]
+
+    def chunk_into_n(self, sentences: List[str], n_chunks: int = 10) -> List[str]:
+        avg_sentences_per_chunk: int = max(1, len(sentences) // n_chunks)
+        chunks: List[str] = []
+
+        for i in range(0, len(sentences), avg_sentences_per_chunk):
+            chunk: str = " ".join(sentences[i:i + avg_sentences_per_chunk])
+            chunks.append(chunk)
+
+        return chunks

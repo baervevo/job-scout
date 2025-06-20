@@ -21,7 +21,7 @@ class Listing(Base):
     location = Column(String)
     link = Column(String)
     keywords = Column(String)
-    embedding = Column(Vector(1536))
+    embedding = Column(Vector(384))
     scraped_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="listings")

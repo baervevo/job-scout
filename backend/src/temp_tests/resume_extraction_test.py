@@ -26,13 +26,13 @@ async def main():
     listing = Listing(internal_id="123", title="Software Engineer", company="Tech Company", remote=False,
                       description=job_offer)
 
-    listing_processor = ListingProcessor(llm_model_name="llama2")
-    resume_processor = ResumeProcessor(llm_model_name="llama2")
+    listing_processor = ListingProcessor()
+    resume_processor = ResumeProcessor()
 
-    processed_listings = await listing_processor.process_listings([listing])
+    processed_listings = listing_processor.process_listings([listing])
     processed_resumes = await resume_processor.process_resumes([resume])
 
-    matching_processor = MatchingProcessor(processed_resumes[0], llm_model_name="llama2")
+    matching_processor = MatchingProcessor(processed_resumes[0])
 
     matching_result = await matching_processor.match_single_listing(processed_listings[0])
     print(matching_result)

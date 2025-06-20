@@ -19,10 +19,17 @@ class JoobleScraper(ListingScraper):
     async def execute_query(self, query: Query) -> List[Listing]:
         logger.info(f"Executing query: {query}")
         url = f"{self._target_host}/api/{self._api_key}"
-        payload = {
-            "keywords": ", ".join(query.keywords),
-            "location": query.location
-        }
+
+        payload = {}
+        if query.keywords:
+            payload["keywords"] = ", ".join(query.keywords)
+        if query.location:
+            payload["location"] = query.location
+        if query.radius is not None:
+            payload["radius"] = query.radius
+        if query.salary is not None:
+            payload["salary"] = query.salary
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(url, json=payload)

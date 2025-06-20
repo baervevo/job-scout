@@ -15,7 +15,7 @@ def clean_html_text(text: str) -> str:
     return text
 
 
-def ollama_api_call(prompt: str, model: str = 'llama2', temperature: float = 0.2) -> str:
+def ollama_api_call(prompt: str, model: str, temperature: float = 0.2) -> str:
     response = ollama.chat(
         model=model,
         messages=[
@@ -37,7 +37,7 @@ def kw_text_to_list(text: str) -> list[str]:
     return cleaned_lines
 
 
-def format_keywords(text):
+def format_keywords(text: str) -> str:
     """
        Removes numbering and dots from the start of each line and adds a comma at the end,
        handling various starting patterns.

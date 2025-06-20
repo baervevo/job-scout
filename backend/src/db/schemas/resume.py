@@ -13,7 +13,7 @@ class Resume(Base):
     file_path = Column(String, nullable=False)
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
     keywords = Column(String)
-    embedding = Column(Vector(1536))
+    embedding = Column(Vector(384))
     last_evaluated_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="resumes")

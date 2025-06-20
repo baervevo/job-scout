@@ -14,16 +14,16 @@ class ListingProcessor(Processor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    async def process_listings(self, listings: List[Listing]) -> List[ListingKeywordData]:
+    def process_listings(self, listings: List[Listing]) -> List[ListingKeywordData]:
         processed_listings = []
 
         for listing in listings:
-            processed_listing = await self._process_listing(listing)
+            processed_listing = self._process_single_listing(listing)
             processed_listings.append(processed_listing)
 
         return processed_listings
 
-    async def _process_single_listing(self, listing: Listing) -> ListingKeywordData:
+    def _process_single_listing(self, listing: Listing) -> ListingKeywordData:
         # logger.debug(f"Raw listing {listing.internal_id}: {listing.description}.")
 
         prompt = PROMPT_LISTING_KEYWORDS.format(listing.description)

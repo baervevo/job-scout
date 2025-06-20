@@ -63,6 +63,6 @@ class MatchingProcessor(Processor):
         resumes_kw_joined = ", ".join(self.resume_data.keywords)
         listings_kw_joined = ", ".join(listing_keywords)
         prompt = SUMMARY_MATCHING_PROMPT.format(resumes_kw_joined, listings_kw_joined)
-        summary = ollama_api_call(prompt).lower().strip()
+        summary = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
         logger.debug(f"Summary generated using llm: {summary}.")
         return summary

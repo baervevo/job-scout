@@ -30,14 +30,14 @@ class ScrapingManager:
         self._listing_processor = listing_processor
 
     async def run_scraper(self) -> None:    
-        def process_query(query: Query) -> List[ListingKeywordData]:
-            listings = self._scraper.execute_query(query)
+        async def process_query(query: Query) -> List[ListingKeywordData]:
+            listings = await self._scraper.execute_query(query)
             if not listings:
                 return []
             processed_listings = self._listing_processor.process_listings(listings)
             return processed_listings
 
-        results = map(process_query, self._query_manager.get_queries())
+        results = [await process_query(query) for query in self._query_manager.get_queries()]
         flattened_results = list(chain.from_iterable(results))
         if not flattened_results:
             return
