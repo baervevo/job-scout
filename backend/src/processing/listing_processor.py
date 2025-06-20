@@ -5,7 +5,7 @@ import spacy
 from src.models.listing.listing import Listing
 from src.models.listing.listing_keyword_data import ListingKeywordData
 from src.processing.processor import Processor
-from src.prompts.llama2.listing_keywords import PROMPT as PROMPT_LISTING_KEYWORDS
+from src.prompts.llama3.listing_keywords import PROMPT as PROMPT_LISTING_KEYWORDS
 from src.utils.logger import logger
 from src.utils.processing_utils import ollama_api_call, kw_text_to_list
 

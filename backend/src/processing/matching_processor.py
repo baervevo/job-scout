@@ -5,8 +5,8 @@ import torch
 from src.models.listing.listing_keyword_data import ListingKeywordData
 from src.models.match import Match
 from src.processing.processor import Processor
-from src.prompts.llama2.matching_keywords import PROMPT as KEYWORD_MATCHING_PROMPT
-from src.prompts.llama2.matching_summary import PROMPT as SUMMARY_MATCHING_PROMPT
+from src.prompts.llama3.matching_keywords import PROMPT as KEYWORD_MATCHING_PROMPT
+from src.prompts.llama3.matching_summary import PROMPT as SUMMARY_MATCHING_PROMPT
 from src.utils.logger import logger
 from src.utils.processing_utils import ollama_api_call, format_keywords, kw_text_to_list
 
