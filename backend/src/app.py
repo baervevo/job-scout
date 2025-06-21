@@ -3,6 +3,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
+from src.routes import auth
+
 def setup_matching_queue() -> None:
     from src.matching.matching_queue import get_matching_queue
     from src.matching.matching_callbacks import log_match, commit_match_to_db
@@ -38,3 +40,5 @@ async def lifespan(app: FastAPI):
     shutdown_scraping_scheduler()
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(auth.router, prefix="/auth", tags=["auth"])

@@ -12,7 +12,7 @@ class ScrapingManager:
     _scraper: ListingScraper
     _query_manager: QueryManager
     _listing_processor: ListingProcessor
-    _listing_callbacks: List[Callable[[ListingKeywordData]], None]
+    _listing_callbacks: List[Callable[[ListingKeywordData], None]]
 
     def __init__(
         self,
@@ -39,6 +39,6 @@ class ScrapingManager:
         for callback in self._listing_callbacks:
             map(callback, flattened_results)
 
-    def register_listing_callback(self, callback: Callable[[ListingKeywordData]]) -> None:
+    def register_listing_callback(self, callback: Callable[[ListingKeywordData], None]) -> None:
         self._listing_callbacks.append(callback)
     

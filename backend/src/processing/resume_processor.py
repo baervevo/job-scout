@@ -16,12 +16,12 @@ class ResumeProcessor(Processor):
         processed_resumes = []
 
         for resume in resumes:
-            processed_resume = await self._process_single_resume(resume)
+            processed_resume = await self.process_resume(resume)
             processed_resumes.append(processed_resume)
 
         return processed_resumes
 
-    async def _process_single_resume(self, resume: Resume) -> ResumeKeywordData:
+    async def process_resume(self, resume: Resume) -> ResumeKeywordData:
         prompt = PROMPT_RESUME_KEYWORDS.format(resume.content)
         resume_content_llm_processed = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
         logger.debug(f"Resume{resume.id} processed with llm: {resume_content_llm_processed}.")

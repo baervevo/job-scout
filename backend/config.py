@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = Field(..., env='POSTGRES_HOST')
     POSTGRES_PORT: str = Field(..., env='POSTGRES_PORT')
 
+    RESUME_DIR: str = Field(..., env='RESUME_DIR')
+
     @property
     def POSTGRES_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
