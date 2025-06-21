@@ -4,6 +4,6 @@ from pydantic import BaseModel
 
 
 class KeywordData(BaseModel):
-    id: Optional[str]
+    id: Optional[int]
     keywords: List[str]
     embedding: List[float]

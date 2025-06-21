@@ -11,19 +11,19 @@ from sqlalchemy import select
 
 async def update_resume_keywords(resume: ResumeKeywordData) -> None:
     async with async_session_maker() as db_session:
-        result = await db_session.execute(
-            select(ResumeSchema).filter(ResumeSchema.id == resume.id)
-        )
-        existing_resume = result.scalars().first()
-        if existing_resume:
-            existing_resume.keywords = resume.keywords
-            existing_resume.embedding = ",".join(resume.embedding) if resume.embedding else None
-            
-            await db_session.commit()
-            await db_session.refresh(existing_resume)
-            logger.info(f"Updated keywords for resume ID {resume.id}.")
-            return
-        logger.error(f"Resume with ID {resume.id} not found in the database.")
+        async with db_session.begin():
+            result = await db_session.execute(
+                select(ResumeSchema).filter(ResumeSchema.id == resume.id)
+            )
+            existing_resume = result.scalars().first()
+            if existing_resume is not None:
+                existing_resume.keywords = ",".join(resume.keywords) if resume.keywords else None
+                existing_resume.embedding = ",".join(map(str, resume.embedding)) if resume.embedding else None
+                await db_session.commit()
+                await db_session.refresh(existing_resume)
+                logger.info(f"Updated keywords for resume ID {resume.id}.")
+                return
+            logger.error(f"Resume with ID {resume.id} not found in the database.")
 
         
 async def generate_query(
@@ -32,6 +32,7 @@ async def generate_query(
     query = Query(
         keywords=resume.keywords,
     )
+    logger.info(query)
     get_query_manager().add_query(query)
 
 async def enqueue_matches(
@@ -51,7 +52,7 @@ async def enqueue_matches(
                     id=listing.id,
                     title=listing.title,
                     company=listing.company.name if listing.company else None,
-                    keywords=listing.keywords,
+                    keywords=listing.keywords.split(",") if listing.keywords else [],
                     embedding=[float(x) for x in listing.embedding.split(",")] if listing.embedding else None,
                 ) for listing in result
             ]

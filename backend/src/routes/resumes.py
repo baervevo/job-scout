@@ -56,12 +56,11 @@ async def upload_resume(
         await db.commit()
         await db.refresh(resume_db)
         resume.id = resume_db.id
-        logger.info(resume)
         resume_processing_queue.enqueue(resume)
+        return {"success": True, "message": "Resume uploaded successfully"}
     except Exception as e:
         logger.error(f"Failed to upload resume: {e}")
         raise HTTPException(status_code=500, detail="Upload failed")
-    return {"success": True, "message": "Resume uploaded successfully"}
 
 
 @router.get("/{user_id}/resumes", response_model=List[Resume])

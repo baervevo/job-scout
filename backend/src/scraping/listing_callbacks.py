@@ -11,6 +11,7 @@ from src.db.schemas.listing import Listing as ListingSchema
 from src.models.listing.listing_keyword_data import ListingKeywordData
 
 from src.utils.logger import logger
+from src.utils.pdf import extract_text_from_pdf
 
 async def log_listing_keywords(
     listing: ListingKeywordData,
@@ -60,4 +61,13 @@ async def enqueue_matches(listing: ListingKeywordData) -> None:
         )
         resumes = result.scalars().all()
     for resume in resumes:
-        get_matching_queue().enqueue(resume, listing)
+        kw_data = ResumeKeywordData(
+            id=resume.id,
+            user_id=resume.user_id,
+            file_name=resume.file_name,
+            file_path=resume.file_path,
+            content=extract_text_from_pdf(resume.file_path) if resume.file_path else "",
+            keywords=resume.keywords.split(",") if resume.keywords else [],
+            embedding=list(map(float, resume.embedding.split(","))) if resume.embedding else []
+        )
+        get_matching_queue().enqueue(kw_data, listing)

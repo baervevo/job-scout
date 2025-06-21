@@ -23,7 +23,7 @@ def setup_matching_queue() -> None:
         queue.register_on_match_callback(callback)
     logger.info("Matching queue setup complete with callbacks registered.")
 
-def setup_resume_processing_queue() -> None:
+async def setup_resume_processing_queue() -> None:
     from src.processing.resume_processing_queue import get_resume_processing_queue
     from src.processing.resume_processor_callbacks import (
         update_resume_keywords,
@@ -40,6 +40,7 @@ def setup_resume_processing_queue() -> None:
     for callback in resume_callbacks:
         logger.info(f"Registering callback {callback.__name__} for resume processing queue")
         queue.register_on_processed_callback(callback)
+    await queue.start()
     logger.info("Resume processing queue setup complete with callbacks registered.")
 
 def setup_scrapers() -> None:
@@ -71,12 +72,18 @@ def setup_scrapers() -> None:
             manager.register_listing_callback(callback)
     logger.info("Scrapers setup complete with listing callbacks registered.")
 
+def stop():
+    from src.processing.resume_processing_queue import get_resume_processing_queue
+
+    get_resume_processing_queue().stop()
+    logger.info("All queues stopped successfully.")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from src.scraping.scheduler import start_scraping_scheduler, shutdown_scraping_scheduler
 
     setup_scrapers()
-    setup_resume_processing_queue()
+    await setup_resume_processing_queue()
     setup_matching_queue()
 
     start_scraping_scheduler()

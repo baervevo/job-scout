@@ -9,6 +9,8 @@ from src.models.listing.listing_keyword_data import ListingKeywordData
 from src.models.match import Match
 from src.processing.matching_processor import MatchingProcessor
 
+from src.utils.logger import logger
+
 class MatchingQueue:
     _matching_queue: queue.Queue[Tuple[ResumeKeywordData, ListingKeywordData]]
     _matching_processor: MatchingProcessor
@@ -46,8 +48,7 @@ class MatchingQueue:
             try:
                 resume, listing = self._matching_queue.get(timeout=1)
                 match = await self._matching_processor.match(resume, listing)
-                if match:
-                    self._notify_on_match(match)
+                self._notify_on_match(match)
             except queue.Empty:
                 continue
 

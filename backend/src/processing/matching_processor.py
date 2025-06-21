@@ -19,10 +19,13 @@ class MatchingProcessor(Processor):
 
     async def match(self, resume: ResumeKeywordData, listing: ListingKeywordData) -> Optional[Match]:
         if not resume.keywords or not listing.keywords:
-            logger.debug(f"Skipping match for resume {resume.id} and listing {listing.id} due to missing keywords.")
+            if not resume.keywords:
+                logger.debug(f"Skipping match for resume {resume.id} due to missing keywords.")
+            if not listing.keywords:
+                logger.debug(f"Skipping match for listing {listing.id} due to missing keywords.")
             return None
         missing_keywords = self._find_missing_keywords(resume.keywords, listing.keywords)
-        similarity = self._calculate_cosine_similarity(resume.keywords, listing.embedding)
+        similarity = self._calculate_cosine_similarity(resume.embedding, listing.embedding)
         summary = self._generate_summary(resume.keywords, listing.keywords)
 
         if similarity < settings.MATCHING_COSINE_THRESHOLD:
@@ -46,7 +49,7 @@ class MatchingProcessor(Processor):
         listings_kw_joined = ", ".join(listing_keywords) if listing_keywords else ""
         prompt = KEYWORD_MATCHING_PROMPT.format(resumes_kw_joined, listings_kw_joined)
         missing_kw = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
-        logger.debug(f"Keywords matched using llm: {missing_kw}.")
+        # logger.debug(f"Keywords matched using llm: {missing_kw}.")
 
         missing_kw_clean = format_keywords(missing_kw)
         # logger.debug(f"Keywords cleaned with regex: {missing_kw_clean}.")

@@ -24,10 +24,10 @@ class ResumeProcessor(Processor):
     async def process_resume(self, resume: Resume) -> ResumeKeywordData:
         prompt = PROMPT_RESUME_KEYWORDS.format(resume.content)
         resume_content_llm_processed = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
-        logger.debug(f"Resume{resume.id} processed with llm: {resume_content_llm_processed}.")
+        # logger.debug(f"Resume{resume.id} processed with llm: {resume_content_llm_processed}.")
         resume_kw = format_keywords(resume_content_llm_processed)
         kw_list = kw_text_to_list(resume_kw)
-        logger.debug(f"Resume {resume.id} as a keyword list: {kw_list}.")
+        # logger.debug(f"Resume {resume.id} as a keyword list: {kw_list}.")
 
         resume_vec = self.embed_text(resume_kw)
         resume_vec_converted = resume_vec.tolist()
