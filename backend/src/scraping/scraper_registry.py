@@ -8,7 +8,7 @@ from src.scraping.scrapers.jooble_scraper import JoobleScraper
 from src.scraping.scraping_manager import ScrapingManager
 from src.utils.logger import logger
 
-_scraper_registry: Dict[str, ScrapingManager] = {}
+_scraper_registry: Dict[str, ScrapingManager] = None
 
 
 def init_scraper_registry():
@@ -29,10 +29,15 @@ def init_scraper_registry():
 
 
 def get_scraper_registry() -> Dict[str, ScrapingManager]:
+    global _scraper_registry
+    if not _scraper_registry:
+        init_scraper_registry()
     return _scraper_registry
 
 
 async def run_all_scrapers():
+    if not _scraper_registry:
+        return
     logger.info(f"Executing all scrapers...")
     for name, manager in _scraper_registry.items():
         try:

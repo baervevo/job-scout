@@ -7,7 +7,7 @@ from src.scraping.scraper_registry import get_scraper_registry
 
 _scraping_scheduler = None
 
-def start_scheduler():
+def start_scraping_scheduler():
     global _scraping_scheduler
     if _scraping_scheduler is not None:
         logger.warning("Scheduler already started.")
@@ -24,7 +24,7 @@ def start_scheduler():
         )
     _scraping_scheduler.start()
 
-def shutdown_scheduler():
+def shutdown_scraping_scheduler():
     global _scraping_scheduler
     if _scraping_scheduler:
         logger.info("Shutting down scheduler...")
