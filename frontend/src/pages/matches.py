@@ -41,7 +41,7 @@ def create_match_card(match: Match, listing: ListingKeywordData):
             with ui.row().classes('flex-wrap gap-2'):
                 ui.label(f'Missing Keywords:').classes('text-sm text-gray-500')
                 for kw in match.missing_keywords:
-                    ui.chip(kw).classes('bg-transparent border-2 border-red-800 text-white font-mono')
+                    ui.chip(kw).classes('bg-transparent border-2 border-purple-700 text-white font-mono')
 
 
 def open_match_details(match: Match, listing: ListingKeywordData):
