@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class Listing(BaseModel):
-    id: int
+    id: Optional[int] = None
     internal_id: Optional[str] = None
     title: Optional[str] = None
     company: Optional[str] = None

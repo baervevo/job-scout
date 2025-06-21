@@ -7,12 +7,12 @@ class Match(Base):
     __tablename__ = 'matches'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    resume_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    resume_id = Column(Integer, ForeignKey('resumes.id'), nullable=False)
     listing_id = Column(Integer, ForeignKey('listings.id'), nullable=False)
     missing_keywords = Column(String, nullable=False)
     cosine_similarity = Column(Float, nullable=False)
     summary = Column(String, nullable=True)
     matched_at = Column(DateTime, nullable=False)
 
-    resume = relationship("User", back_populates="matches")
     listing = relationship("Listing", back_populates="matches")
+    resume = relationship("Resume", back_populates="matches")

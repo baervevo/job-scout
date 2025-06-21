@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import torch
 
@@ -11,23 +11,29 @@ from src.prompts.llama3.matching_summary import PROMPT as SUMMARY_MATCHING_PROMP
 from src.utils.logger import logger
 from src.utils.processing_utils import ollama_api_call, format_keywords, kw_text_to_list
 
+from config import settings
 
 class MatchingProcessor(Processor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    async def match(self, resume: ResumeKeywordData, listing: ListingKeywordData) -> Match:
+    async def match(self, resume: ResumeKeywordData, listing: ListingKeywordData) -> Optional[Match]:
+        if not resume.keywords or not listing.keywords:
+            logger.debug(f"Skipping match for resume {resume.id} and listing {listing.id} due to missing keywords.")
+            return None
         missing_keywords = self._find_missing_keywords(resume.keywords, listing.keywords)
         similarity = self._calculate_cosine_similarity(resume.keywords, listing.embedding)
         summary = self._generate_summary(resume.keywords, listing.keywords)
 
-        return Match(
-            resume_id=resume.id,
-            listing_id=listing.id,
-            missing_keywords=missing_keywords,
-            cosine_similarity=similarity,
-            summary=summary
-        )
+        if similarity < settings.MATCHING_COSINE_THRESHOLD:
+            return Match(
+                resume_id=resume.id,
+                listing_id=listing.id,
+                missing_keywords=missing_keywords,
+                cosine_similarity=similarity,
+                summary=summary
+            )
+        return None
 
     def _calculate_cosine_similarity(self, resume_embedding: List[float], listing_embedding: List[float]) -> float:
         vec1 = torch.tensor(resume_embedding)
@@ -36,8 +42,8 @@ class MatchingProcessor(Processor):
         return cos_sim.item()
 
     def _find_missing_keywords(self, resume_keywords: List[str], listing_keywords: List[str]) -> List[str]:
-        resumes_kw_joined = ", ".join(resume_keywords)
-        listings_kw_joined = ", ".join(listing_keywords)
+        resumes_kw_joined = ", ".join(resume_keywords) if resume_keywords else ""
+        listings_kw_joined = ", ".join(listing_keywords) if listing_keywords else ""
         prompt = KEYWORD_MATCHING_PROMPT.format(resumes_kw_joined, listings_kw_joined)
         missing_kw = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
         logger.debug(f"Keywords matched using llm: {missing_kw}.")

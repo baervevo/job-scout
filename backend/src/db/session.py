@@ -14,7 +14,6 @@ async_session_maker: sessionmaker[AsyncSession] = sessionmaker(
     expire_on_commit=False
 )
 
-@asynccontextmanager
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         logger.info("Database session created.")

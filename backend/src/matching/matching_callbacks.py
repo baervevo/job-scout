@@ -7,8 +7,8 @@ def log_match(match: Match) -> None:
 async def commit_match_to_db(match: Match) -> None:
     from db.session import async_session_maker
     from db.schemas.match import Match as MatchSchema
-    with async_session_maker() as db_session:
+    async with async_session_maker() as db_session:
         data = match.model_dump(exclude_unset=True)
-        row: MatchSchema = MatchSchema(**data)
+        row = MatchSchema(**data)
         db_session.add(row)
         db_session.commit()

@@ -1,6 +1,7 @@
 import queue
 import threading
 import time
+import asyncio
 from typing import Tuple, List, Callable
 
 from src.models.resume.resume_keyword_data import ResumeKeywordData
@@ -23,9 +24,12 @@ class MatchingQueue:
         self._on_match_callbacks = []
 
         self._stop_event = threading.Event()
-        self._thread = threading.Thread(target=self._process_matches)
+        self._thread = threading.Thread(target=self._thread_func)
         self._mutex = threading.Lock()
         self._thread.start()
+
+    def _thread_func(self) -> None:
+        asyncio.run(self._process_matches())
 
     def enqueue(self, resume: ResumeKeywordData, listing: ListingKeywordData) -> None:
         with self._mutex:
@@ -35,14 +39,15 @@ class MatchingQueue:
         with self._mutex:
             self._on_match_callbacks.append(callback)
 
-    def _process_matches(self) -> None:
+    async def _process_matches(self) -> None:
         while not self._stop_event.is_set():
             while self._matching_queue.empty():
                 time.sleep(60) # TODO(@mariusz): make this configurable
             try:
                 resume, listing = self._matching_queue.get(timeout=1)
-                match = self._matching_processor.match(resume, listing)
-                self._notify_on_match(match)
+                match = await self._matching_processor.match(resume, listing)
+                if match:
+                    self._notify_on_match(match)
             except queue.Empty:
                 continue
 

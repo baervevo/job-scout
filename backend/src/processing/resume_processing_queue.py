@@ -1,5 +1,6 @@
 import queue
 import threading
+import asyncio
 import time
 from typing import List, Callable
 
@@ -23,9 +24,12 @@ class ResumeProcessingQueue:
         self._on_processed_callbacks = []
 
         self._stop_event = threading.Event()
-        self._thread = threading.Thread(target=self._process_matches)
+        self._thread = threading.Thread(target=self._thread_func)
         self._mutex = threading.Lock()
         self._thread.start()
+
+    def _thread_func(self) -> None:
+        asyncio.run(self._process_resumes())
 
     def enqueue(self, resume: Resume) -> None:
         with self._mutex:
@@ -35,21 +39,21 @@ class ResumeProcessingQueue:
         with self._mutex:
             self._on_processed_callbacks.append(callback)
 
-    def _process_resumes(self) -> None:
+    async def _process_resumes(self) -> None:
         while not self._stop_event.is_set():
             while self._resume_queue.empty():
                 time.sleep(60) # TODO(@mariusz): make this configurable
             try:
                 resume = self._resume_queue.get(timeout=1)
-                processed = self._resume_processor.process_resume(resume)
-                self._notify_on_match(processed)
+                processed = await self._resume_processor.process_resume(resume)
+                await self._notify_on_processed(processed)
             except queue.Empty:
                 continue
 
-    def _notify_on_processed(self, processed_resume: ResumeKeywordData) -> None:
+    async def _notify_on_processed(self, processed_resume: ResumeKeywordData) -> None:
         with self._mutex:
             for callback in self._on_processed_callbacks:
-                callback(processed_resume)
+                await callback(processed_resume)
 
     def stop(self) -> None:
         self._stop_event.set()
@@ -58,11 +62,10 @@ class ResumeProcessingQueue:
 _resume_processing_queue = None
 _mutex = threading.Lock()
 
-def get_resume_processing_queue(processor: ResumeProcessor = None) -> ResumeProcessingQueue:
+def get_resume_processing_queue() -> ResumeProcessingQueue:
     global _resume_processing_queue
     with _mutex:
         if _resume_processing_queue is None:
-            if processor is None:
-                processor = ResumeProcessor()
+            processor = ResumeProcessor()
             _resume_processing_queue = ResumeProcessingQueue(processor)
         return _resume_processing_queue

@@ -26,10 +26,10 @@ class ListingProcessor(Processor):
     def _process_single_listing(self, listing: Listing) -> ListingKeywordData:
         prompt = PROMPT_LISTING_KEYWORDS.format(listing.description)
         listing_kw = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
-        logger.debug(f"Listing {listing.id} processed with ollama: {listing_kw}.")
+        # logger.debug(f"Listing {listing.id} processed with ollama: {listing_kw}.")
 
         kw_list = kw_text_to_list(listing_kw)
-        logger.debug(f"Listing {listing.id} as a keyword list: {kw_list}.")
+        # logger.debug(f"Listing {listing.id} as a keyword list: {kw_list}.")
 
         listing_vec = self.embed_text(listing_kw)
         listing_vec_converted = listing_vec.tolist()

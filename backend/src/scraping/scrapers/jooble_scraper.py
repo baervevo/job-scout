@@ -6,7 +6,10 @@ from src.models.listing.listing import Listing
 from src.models.query import Query
 from src.utils.logger import logger
 from src.utils.salary import parse_salary_range
+from src.utils.processing_utils import clean_html_text
 from dateutil import parser
+
+from config import settings
 
 class JoobleScraper(ListingScraper):
     _api_key: str
@@ -17,7 +20,6 @@ class JoobleScraper(ListingScraper):
         self._target_host = target_host
 
     async def execute_query(self, query: Query) -> List[Listing]:
-        logger.info(f"Executing query: {query}")
         url = f"{self._target_host}/api/{self._api_key}"
 
         payload = {}
@@ -41,14 +43,15 @@ class JoobleScraper(ListingScraper):
 
     def _parse_response(self, data: dict) -> List[Listing]:
         listings = []
-        for job in data.get("jobs", []):
+        for job in data.get("jobs", [])[0:settings.JOOBLE_MAX_RESULTS]:
             salary_min, salary_max, currency = parse_salary_range(job.get("salary"))
             listings.append(Listing(
+                id=None, # ID will be set by the database
                 internal_id=str(job.get("id")),
                 title=job.get("title", ""),
                 company=job.get("company", ""),
                 location=job.get("location", ""),
-                description=job.get("snippet", ""),
+                description=clean_html_text(job.get("snippet", "")),
                 salary_min=salary_min,
                 salary_max=salary_max,
                 currency=currency,

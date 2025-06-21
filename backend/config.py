@@ -30,10 +30,11 @@ class Settings(BaseSettings):
     
     JOOBLE_API_KEY: str = Field(..., env='JOOBLE_API_KEY')
     JOOBLE_HOST: str = "https://jooble.org"
-
-    OPENAI_API_KEY: str = Field(..., env='OPENAI_API_KEY')
+    JOOBLE_MAX_RESULTS: int = Field(2, env='JOOBLE_MAX_RESULTS')
 
     LOGGING_LEVEL: int = logging.DEBUG
     LOGGING_FORMAT: str = "%(name)s @ %(asctime)s [%(levelname)s]: %(message)s"
+
+    MATCHING_COSINE_THRESHOLD: float = Field(0.5, env='MATCHING_COSINE_THRESHOLD')
     
 settings = Settings()

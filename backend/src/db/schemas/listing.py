@@ -19,9 +19,10 @@ class Listing(Base):
     salary_max = Column(Float)
     currency = Column(String)
     location = Column(String)
-    link = Column(String)
+    link = Column(String, unique=True, nullable=False)
     keywords = Column(String)
-    embedding = Column(Vector(384))
+    embedding = Column(String)
     scraped_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="listings")
+    matches = relationship("Match", back_populates="listing")

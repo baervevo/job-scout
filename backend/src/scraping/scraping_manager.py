@@ -8,6 +8,8 @@ from src.scraping.scrapers.listing_scraper import ListingScraper
 
 from src.processing.listing_processor import ListingProcessor
 
+from src.utils.logger import logger
+
 class ScrapingManager:
     _scraper: ListingScraper
     _query_manager: QueryManager
@@ -37,7 +39,8 @@ class ScrapingManager:
         if not flattened_results:
             return
         for callback in self._listing_callbacks:
-            map(callback, flattened_results)
+            for listing in flattened_results:
+                await callback(listing)
 
     def register_listing_callback(self, callback: Callable[[ListingKeywordData], None]) -> None:
         self._listing_callbacks.append(callback)
