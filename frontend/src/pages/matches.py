@@ -24,13 +24,18 @@ def create_match_card(match: Match, listing: ListingKeywordData):
     with card:
         with ui.column():
             with ui.row():
-                color = interpolate_color(match.cosine_similarity, saturation_boost=1.8, brightness_factor=1)
-                ui.label(f'{match.cosine_similarity * 100:.0f}% ').classes('text-7xl font-mono').style(f'color: {color}')
+                color = interpolate_color(match.cosine_similarity, saturation_boost=1, brightness_factor=1)
+                ui.label(f'{match.cosine_similarity * 100:.0f}% ').classes('text-7xl').style(
+                    f'color: {color}')
                 with ui.column():
                     ui.label(f'{listing.title}').classes('text-3xl font-bold')
-                    with ui.row():
-                        ui.label(f'{listing.company}')
-                        ui.label(f'{listing.location}')
+                    with ui.row().style('gap: 8px; align-items: center;'):
+                        with ui.row().style('gap: 4px; align-items: center;'):
+                            ui.icon('business').style('margin: 0')
+                            ui.label(f'{listing.company}')
+                        with ui.row().style('gap: 4px; align-items: center;'):
+                            ui.icon('place').style('margin: 0')
+                            ui.label(f'{listing.location}')
 
                 if listing.salary_min is not None and listing.salary_max is not None:
                     salary = f"{listing.currency} {listing.salary_min} - {listing.salary_max}"
@@ -73,43 +78,26 @@ def create_keywords_chips(missing_keywords: List[str], keywords: List[str]):
 
 
 def interpolate_color(value: float, saturation_boost: float = 1.5, brightness_factor: float = 0.6) -> str:
-    """
-    Interpolate smoothly between red → yellow → green,
-    then boost saturation and lower brightness for neon-dark effect.
-
-    - saturation_boost > 1 increases saturation
-    - brightness_factor < 1 darkens the color
-    """
     value = max(0, min(1, value))
 
     def lerp(a, b, t):
         return a + (b - a) * t
 
-    if value <= 0.5:
-        t = value / 0.5
-        r = 255
-        g = lerp(0, 255, t)
-        b = 0
-    else:
-        t = (value - 0.5) / 0.5
-        r = lerp(255, 0, t)
-        g = lerp(255, 128, t)
-        b = 0
+    r_start, g_start, b_start = 48, 25, 52
+    r_end, g_end, b_end = 255, 255, 255
 
-    # Convert to 0-1 range
+    r = lerp(r_start, r_end, value)
+    g = lerp(g_start, g_end, value)
+    b = lerp(b_start, b_end, value)
+
     r_norm, g_norm, b_norm = r / 255, g / 255, b / 255
-
-    # Convert RGB to HSV
     h, s, v = colorsys.rgb_to_hsv(r_norm, g_norm, b_norm)
 
-    # Apply saturation boost and brightness reduction
     s = min(s * saturation_boost, 1.0)
-    v = v * brightness_factor
+    v = min(v * brightness_factor, 1.0)
 
-    # Convert back to RGB
     r_new, g_new, b_new = colorsys.hsv_to_rgb(h, s, v)
 
-    # Convert to 0-255 range and hex
     r_final = int(r_new * 255)
     g_final = int(g_new * 255)
     b_final = int(b_new * 255)

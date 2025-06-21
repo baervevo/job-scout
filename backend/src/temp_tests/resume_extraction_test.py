@@ -32,9 +32,9 @@ async def main():
     processed_listings = listing_processor.process_listings([listing])
     processed_resumes = await resume_processor.process_resumes([resume])
 
-    matching_processor = MatchingProcessor(processed_resumes[0])
+    matching_processor = MatchingProcessor()
 
-    matching_result = await matching_processor.match_single_listing(processed_listings[0])
+    matching_result = await matching_processor.match(processed_resumes[0], processed_listings[0])
     print(matching_result)
 
 

@@ -11,4 +11,5 @@ if __name__ in {"__main__", "__mp_main__"}:
     from src.pages.home import *
     from src.pages.resumes import *
     from src.pages.matches import *
+    from src.pages.register import *
     main()

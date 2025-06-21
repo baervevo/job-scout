@@ -10,7 +10,7 @@ sample_kw_list = ['Python', 'JavaScript', 'SQL', 'HTML', 'CSS', 'Django', 'Flask
 
 resumes = [
     ResumeKeywordData(
-        internal_id="12345",
+        id="12345",
         keywords=sample_kw_list,
         embedding=[0.1, 0.2, 0.3, 0.4, 0.5],
         user_id="user_001",
@@ -19,7 +19,7 @@ resumes = [
         content="This is a sample resume content."
     ),
     ResumeKeywordData(
-        internal_id="67890",
+        id="67890",
         keywords=['Java', 'Spring', 'Hibernate', 'SQL'],
         embedding=[0.6, 0.7, 0.8, 0.9, 1.0],
         user_id="user_001",
@@ -27,7 +27,7 @@ resumes = [
         file_path=path_pdf,
         content="This is another sample resume content."
     ), ResumeKeywordData(
-        internal_id="11223",
+        id="11223",
         keywords=['C++', 'Qt', 'Boost', 'OpenCV'],
         embedding=[0.2, 0.3, 0.4, 0.5, 0.6],
         user_id="user_001",
@@ -95,7 +95,7 @@ listings = [
         currency="USD",
         location="Remote",
         link="https://techcorp.com/jobs/123",
-        internal_id="listing_001",
+        id="listing_001",
         keywords=["Python", "AWS", "Microservices", "Docker"],
         embedding=[0.12, 0.45, 0.87, 0.23, 0.56]
     ),
@@ -111,7 +111,7 @@ listings = [
         currency="USD",
         location="New York, NY",
         link="https://datax.com/careers/456",
-        internal_id="listing_002",
+        id="listing_002",
         keywords=["Machine Learning", "Statistics", "Python", "TensorFlow"],
         embedding=[0.32, 0.15, 0.67, 0.78, 0.91]
     ),
@@ -127,7 +127,7 @@ listings = [
         currency="USD",
         location="Remote",
         link="https://buildit.io/jobs/789",
-        internal_id="listing_003",
+        id="listing_003",
         keywords=["Agile", "Scrum", "Leadership", "Communication"],
         embedding=[0.21, 0.55, 0.77, 0.34, 0.68]
     ),
@@ -143,7 +143,7 @@ listings = [
         currency="USD",
         location="San Francisco, CA",
         link="https://designpro.com/careers/321",
-        internal_id="listing_004",
+        id="listing_004",
         keywords=["UX", "UI", "Figma", "Prototyping", "User Research"],
         embedding=[0.65, 0.32, 0.48, 0.91, 0.22]
     ),
@@ -159,7 +159,7 @@ listings = [
         currency="USD",
         location="Remote",
         link="https://skynet.cloud/jobs/654",
-        internal_id="listing_005",
+        id="listing_005",
         keywords=["AWS", "Azure", "GCP", "Cloud Architecture", "DevOps"],
         embedding=[0.42, 0.56, 0.91, 0.13, 0.77]
     ),
@@ -175,7 +175,7 @@ listings = [
         currency=None,
         location="Austin, TX",
         link="https://marketgenius.com/jobs/987",
-        internal_id="listing_006",
+        id="listing_006",
         keywords=["SEO", "SEM", "Social Media", "Analytics"],
         embedding=[0.18, 0.44, 0.59, 0.72, 0.36]
     )

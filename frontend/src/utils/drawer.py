@@ -4,7 +4,7 @@ from src.styles import PAGE_BUTTON
 
 
 def left_drawer():
-    with ui.left_drawer(top_corner=True, bottom_corner=True).classes('bg-purple-900'):
+    with ui.left_drawer(top_corner=True, bottom_corner=True).classes('bg-purple-700'):
         ui.label('RESUME MATCHER').classes('text-white text-xl font-bold p-4')
 
         ui.button('Home', on_click=lambda: ui.navigate.to('/home')).classes(PAGE_BUTTON).props('flat align=left')

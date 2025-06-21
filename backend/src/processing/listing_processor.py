@@ -34,7 +34,7 @@ class ListingProcessor(Processor):
         listing_vec = self.embed_text(listing_kw)
         listing_vec_converted = listing_vec.tolist()
 
-        return ListingKeywordData(id=listing.id,
+        return ListingKeywordData(id=str(listing.id),
                                   keywords=kw_list,
                                   embedding=listing_vec_converted,
                                   title=listing.title,
