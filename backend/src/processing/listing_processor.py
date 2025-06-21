@@ -24,19 +24,17 @@ class ListingProcessor(Processor):
         return processed_listings
 
     def _process_single_listing(self, listing: Listing) -> ListingKeywordData:
-        # logger.debug(f"Raw listing {listing.internal_id}: {listing.description}.")
-
         prompt = PROMPT_LISTING_KEYWORDS.format(listing.description)
         listing_kw = ollama_api_call(prompt, model=self.llm_model_name).lower().strip()
-        logger.debug(f"Listing {listing.internal_id} processed with ollama: {listing_kw}.")
+        logger.debug(f"Listing {listing.id} processed with ollama: {listing_kw}.")
 
         kw_list = kw_text_to_list(listing_kw)
-        logger.debug(f"Listing {listing.internal_id} as a keyword list: {kw_list}.")
+        logger.debug(f"Listing {listing.id} as a keyword list: {kw_list}.")
 
         listing_vec = self.embed_text(listing_kw)
         listing_vec_converted = listing_vec.tolist()
 
-        return ListingKeywordData(internal_id=listing.internal_id,
+        return ListingKeywordData(id=listing.id,
                                   keywords=kw_list,
                                   embedding=listing_vec_converted,
                                   title=listing.title,

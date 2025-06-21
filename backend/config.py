@@ -12,6 +12,9 @@ load_dotenv(dotenv_path=env_path)
 print(f"Loading environment variables from {env_path}")
 
 class Settings(BaseSettings):
+    APP_HOST: str = Field(..., env='APP_HOST')
+    APP_PORT: int = Field(..., env='APP_PORT')
+
     # Database configuration
     POSTGRES_USER: str = Field(..., env='POSTGRES_USER')
     POSTGRES_PASSWORD: str = Field(..., env='POSTGRES_PASSWORD')

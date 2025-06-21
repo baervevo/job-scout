@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, String, Float
+from sqlalchemy import Column, Integer, ForeignKey, String, Float, DateTime
 from sqlalchemy.orm import relationship
 
 from src.db.base import Base
@@ -12,6 +12,7 @@ class Match(Base):
     missing_keywords = Column(String, nullable=False)
     cosine_similarity = Column(Float, nullable=False)
     summary = Column(String, nullable=True)
+    matched_at = Column(DateTime, nullable=False)
 
     resume = relationship("User", back_populates="matches")
     listing = relationship("Listing", back_populates="matches")

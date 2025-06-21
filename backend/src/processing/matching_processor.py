@@ -22,8 +22,8 @@ class MatchingProcessor(Processor):
         summary = self._generate_summary(resume.keywords, listing.keywords)
 
         return Match(
-            resume_id=resume.internal_id,
-            listing_id=listing.internal_id,
+            resume_id=resume.id,
+            listing_id=listing.id,
             missing_keywords=missing_keywords,
             cosine_similarity=similarity,
             summary=summary

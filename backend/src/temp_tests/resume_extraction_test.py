@@ -11,7 +11,7 @@ from src.utils.pdf import extract_text_from_pdf
 async def main():
     resume_path = r"C:\Users\mateu\PycharmProjects\JSProject\job-scout\resources\Berlin-Simple-Resume-Template.pdf"
     resume_text = extract_text_from_pdf(resume_path)
-    resume = Resume(content=resume_text, internal_id="47", file_path=resume_path,
+    resume = Resume(content=resume_text, id="47", file_path=resume_path,
                     file_name="Berlin-Simple-Resume-Template.pdf")
 
     job_offer = (
@@ -23,7 +23,7 @@ async def main():
         "We value experience in coaching, business administration, and strategic IT operations. "
         "Familiarity with agile methodologies and ability to work independently in a fast-paced environment required."
     )
-    listing = Listing(internal_id="123", title="Software Engineer", company="Tech Company", remote=False,
+    listing = Listing(id="123", title="Software Engineer", company="Tech Company", remote=False,
                       description=job_offer)
 
     listing_processor = ListingProcessor()
