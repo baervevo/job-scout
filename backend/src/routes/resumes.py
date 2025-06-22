@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -63,11 +63,15 @@ async def upload_resume(
         raise HTTPException(status_code=500, detail="Upload failed")
 
 
-@router.get("/{user_id}/resumes", response_model=List[Resume])
+@router.get("/resumes", response_model=List[Resume])
 async def get_user_resumes(
-    user_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized: no user session")
+
     result = await db.execute(select(ResumeSchema).filter(ResumeSchema.user_id == user_id))
     resumes = result.scalars().all()
     if not resumes:

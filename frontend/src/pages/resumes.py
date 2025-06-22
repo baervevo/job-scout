@@ -3,9 +3,10 @@ from typing import List
 from nicegui import ui
 
 from src.mock_data import resumes, sample_kw_list, path_pdf
-from src.models.resume.resume_keyword_data import ResumeKeywordData
+from src.models.resume.resume import Resume
 from src.styles import PURPLE_BUTTON_SM
 from src.utils.drawer import left_drawer
+
 
 
 @ui.page('/resumes')
@@ -25,7 +26,7 @@ def resumes_page():
                 card = ui.card().tight().classes(
                     'w-full h-32 flex items-center justify-center shadow-lg border border-purple-200 dark:border-purple-800')
                 with card:
-                    ui.label(f'{resume.internal_id}. {resume.file_name}').classes(
+                    ui.label(f'{resume.id}. {resume.file_name}').classes(
                         'text-purple-800 dark:text-purple-200')
                     with ui.row().classes('mt-2'):
                         ui.icon('list', color='purple').on('click', lambda: show_string_list(sample_kw_list))
@@ -34,7 +35,7 @@ def resumes_page():
         with container:
             ui.button('Add New Resume', on_click=open_uploader).classes(f'{PURPLE_BUTTON_SM} mt-9 mx-auto h-8')
 
-    def delete_resume(resume: ResumeKeywordData):
+    def delete_resume(resume: Resume):
         resumes.remove(resume)
         refresh_resumes()
         ui.notify(f'Deleted resume: {resume.file_name}', color='purple')

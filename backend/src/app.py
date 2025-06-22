@@ -3,6 +3,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
+from starlette.middleware.sessions import SessionMiddleware
+
 from src.routes import auth, resumes
 
 from src.utils.logger import logger
@@ -91,6 +93,8 @@ async def lifespan(app: FastAPI):
     shutdown_scraping_scheduler()
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(SessionMiddleware, secret_key="your-super-secret-key")
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(resumes.router, prefix="/resumes", tags=["resumes"])

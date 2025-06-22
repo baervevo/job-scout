@@ -3,34 +3,29 @@ from datetime import datetime
 
 from src.models.listing.listing_keyword_data import ListingKeywordData
 from src.models.match import Match
-from src.models.resume.resume_keyword_data import ResumeKeywordData
+from src.models.resume.resume import Resume
 
 path_pdf = r"resources/Berlin-Simple-Resume-Template.pdf"
-sample_kw_list = ['Python', 'JavaScript', 'SQL', 'HTML', 'CSS', 'Django', 'Flask', 'React', 'Node.js']
 
+sample_kw_list = ['Python', 'JavaScript', 'SQL', 'HTML', 'CSS', 'Django', 'Flask', 'React', 'Node.js']
 resumes = [
-    ResumeKeywordData(
+    Resume(
         id="12345",
-        keywords=sample_kw_list,
-        embedding=[0.1, 0.2, 0.3, 0.4, 0.5],
-        user_id="user_001",
+        user_id=1,
         file_name="example_resume",
         file_path=path_pdf,
         content="This is a sample resume content."
     ),
-    ResumeKeywordData(
+    Resume(
         id="67890",
-        keywords=['Java', 'Spring', 'Hibernate', 'SQL'],
-        embedding=[0.6, 0.7, 0.8, 0.9, 1.0],
-        user_id="user_001",
+        user_id=1,
         file_name="another_resume",
         file_path=path_pdf,
         content="This is another sample resume content."
-    ), ResumeKeywordData(
+    ),
+    Resume(
         id="11223",
-        keywords=['C++', 'Qt', 'Boost', 'OpenCV'],
-        embedding=[0.2, 0.3, 0.4, 0.5, 0.6],
-        user_id="user_001",
+        user_id=1,
         file_name="cpp_resume",
         file_path=path_pdf,
         content="This is a C++ developer resume content."

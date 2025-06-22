@@ -1,5 +1,7 @@
 from nicegui import ui
+
 from src.utils.drawer import left_drawer
+
 
 def render_header():
     ui.label('Resume Matcher').classes('text-4xl font-semibold mb-6')
@@ -7,6 +9,7 @@ def render_header():
         'Welcome to Resume Matcher — your intelligent platform designed to seamlessly connect skilled professionals with their ideal career opportunities.'
     ).classes('mb-8 text-lg text-purple-300').style('line-height: 1.5')
     ui.separator().style('margin-bottom: 2rem')
+
 
 def render_how_it_works():
     ui.label('How It Works').classes('text-2xl font-semibold mb-6')
@@ -31,6 +34,7 @@ def render_how_it_works():
 
     ui.separator().style('margin-bottom: 2rem')
 
+
 def render_get_started():
     ui.label('Get Started').classes('text-2xl font-semibold mb-6')
 
@@ -44,10 +48,12 @@ def render_get_started():
 
     ui.separator().style('margin-top: 2rem')
 
+
 def render_footer():
     ui.label(
         'Powered by advanced matching algorithms to connect talent with the right opportunities.'
     ).classes('text-sm text-purple-200 italic mt-6').style('text-align: center')
+
 
 @ui.page('/home')
 def home_page():

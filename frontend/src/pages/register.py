@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 from nicegui import ui
 
@@ -26,23 +28,25 @@ async def handle_register(username, password, rep_password):
     if not username or not password or not rep_password:
         ui.notify('All fields are required!', color='red')
         return
-    if not check_password_match(password, rep_password):
+    if password != rep_password:
+        ui.notify("Passwords do not match!", color='red')
         return
-    try:
-        async with httpx.AsyncClient() as client:
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        try:
             response = await client.post(
                 f'{API_URL}/auth/register',
-                json={'username': username, 'password': password}
+                data={'login': username, 'password': password}
             )
-
-        if response.status_code == 200:
-            await ui.navigate.to('/login?msg=Registration%20successful')
-        else:
-            detail = response.json().get('detail', 'Unknown error')
+            response.raise_for_status()
+            ui.navigate.to('/login?msg=Registration%20successful')
+        except httpx.HTTPStatusError as e:
+            detail = e.response.json().get('detail', 'Unknown error')
             ui.notify(f'Registration failed: {detail}', color='red')
-
-    except Exception as e:
-        ui.notify(f'Error: {str(e)}', color='red')
+            logging.error(f'Registration error: {detail}')
+        except Exception as e:
+            ui.notify(f'Error: {str(e)}', color='red')
+            logging.error(f'Registration error: {str(e)}')
 
 
 def check_password_match(password: str, rep_password: str) -> bool:
