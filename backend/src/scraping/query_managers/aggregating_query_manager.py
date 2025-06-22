@@ -33,7 +33,6 @@ class AggregatingQueryManager(QueryManager):
         self._loaded = False
 
     async def _load_queries_from_db(self) -> None:
-        """Load stored queries from the database"""
         try:
             from src.db.session import async_session_maker
             from src.db.schemas.stored_query import StoredQuery
@@ -58,20 +57,16 @@ class AggregatingQueryManager(QueryManager):
                 
         except Exception as e:
             logger.error(f"Failed to load queries from database: {str(e)}")
-            self._loaded = True  # Mark as loaded even on error to prevent repeated attempts
+            self._loaded = True
 
     async def _save_queries_to_db(self) -> None:
-        """Save current queries to the database"""
         try:
             from src.db.session import async_session_maker
             from src.db.schemas.stored_query import StoredQuery
             from sqlalchemy import select, delete
 
             async with async_session_maker() as db_session:
-                # Clear existing stored queries
                 await db_session.execute(delete(StoredQuery))
-                
-                # Save current queries
                 for query in self._queries:
                     keywords_str = ",".join(query.keywords) if query.keywords else ""
                     stored_query = StoredQuery(
@@ -81,26 +76,21 @@ class AggregatingQueryManager(QueryManager):
                         salary=query.salary
                     )
                     db_session.add(stored_query)
-                
                 await db_session.commit()
                 logger.info(f"Saved {len(self._queries)} queries to database")
-                
         except Exception as e:
             logger.error(f"Failed to save queries to database: {str(e)}")
 
     async def _ensure_loaded(self) -> None:
-        """Ensure queries are loaded from database"""
         if not self._loaded:
             await self._load_queries_from_db()
 
     def add_query(self, query: Query) -> None:
-        # Load queries if not already loaded (sync version for compatibility)
         if not self._loaded:
             try:
                 loop = asyncio.get_event_loop()
                 loop.create_task(self._load_queries_from_db())
             except RuntimeError:
-                # If no event loop is running, we'll load on first get_queries call
                 pass
 
         for q in self._queries:
@@ -108,7 +98,6 @@ class AggregatingQueryManager(QueryManager):
             if is_similar:
                 existing_keywords_set = set(q.keywords)
                 new_keywords_set = set(query.keywords)
-                # Create a new query with merged keywords to maintain immutability
                 merged_keywords = tuple(existing_keywords_set.union(new_keywords_set))
                 new_query = Query(
                     keywords=merged_keywords,
@@ -126,27 +115,21 @@ class AggregatingQueryManager(QueryManager):
             self._queries.remove(query)
 
     def get_queries(self) -> Generator[Query, None, None]:
-        # Load queries if not already loaded
         if not self._loaded:
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
-                    # If we're in an async context, we can't await here
-                    # The loading will happen asynchronously
                     pass
                 else:
                     loop.run_until_complete(self._load_queries_from_db())
             except RuntimeError:
-                # No event loop, will be loaded later
                 pass
         
         for query in self._queries:
             yield query
 
     async def shutdown(self) -> None:
-        """Save queries to database on shutdown"""
         await self._save_queries_to_db()
 
     async def initialize(self) -> None:
-        """Initialize by loading queries from database"""
         await self._load_queries_from_db()

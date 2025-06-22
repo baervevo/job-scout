@@ -43,7 +43,7 @@ class JoobleScraper(ListingScraper):
 
     def _parse_response(self, data: dict) -> List[Listing]:
         listings = []
-        for job in data.get("jobs", [])[0:settings.JOOBLE_MAX_RESULTS]:
+        for job in data.get("jobs", []):
             salary_min, salary_max, currency = parse_salary_range(job.get("salary"))
             listings.append(Listing(
                 id=None, # ID will be set by the database

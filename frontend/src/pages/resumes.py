@@ -14,8 +14,6 @@ from src.api_client import api_client
 def resumes_page():
     left_drawer()
     container = ui.grid(columns=6).classes('gap-4 p-4 w-full')
-    
-    # Location and radius inputs (initially hidden)
     location_input = ui.input('Job Location (e.g., "New York, NY" or "Remote")').classes('w-full mb-2').style('display: none')
     radius_input = ui.number('Search Radius (km)', value=50, min=1, max=500).classes('w-full mb-2').style('display: none')
     
@@ -26,7 +24,6 @@ def resumes_page():
     ).props('accept=.pdf,.doc,.docx').props('hide-upload-button').classes('hidden')
 
     def open_uploader():
-        # Show location and radius inputs in a dialog first
         with ui.dialog().classes('w-96') as dialog, ui.card():
             ui.label('Job Search Preferences').classes('text-lg font-bold mb-4')
             
@@ -64,8 +61,6 @@ def resumes_page():
                             with ui.column().classes('w-full p-4'):
                                 ui.label(f'{resume.id}. {resume.file_name}').classes(
                                     'text-purple-800 dark:text-purple-200 truncate max-w-full font-semibold')
-                                
-                                # Location and radius info
                                 if resume.location or resume.radius:
                                     location_text = resume.location or "Any location"
                                     radius_text = f" ({resume.radius}km radius)" if resume.radius else ""
@@ -92,6 +87,26 @@ def resumes_page():
                 with container:
                     ui.label('Please log in first to view your resumes.').classes('text-red-500')
                     ui.button('Go to Login', on_click=lambda: ui.navigate.to('/login')).classes('mt-2')
+            else:
+                with container:
+                    ui.label('Failed to load resumes. Please check your connection.').classes('text-red-500')
+                    ui.button('Retry', on_click=lambda: ui.timer(0.1, refresh_resumes, once=True)).classes('mt-2')
+
+    async def delete_resume(resume_id: int):
+        try:
+            await api_client.delete_resume(resume_id)
+            await refresh_resumes()
+            try:
+                ui.notify('Resume deleted successfully', color='green')
+            except Exception:
+                logging.info('Resume deleted successfully (notification failed)')
+        except Exception as e:
+            logging.error(f'Failed to delete resume: {str(e)}')
+            try:
+                ui.notify('Failed to delete resume', color='red')
+            except Exception:
+                logging.error('Failed to delete resume (notification failed)')
+                ui.button('Go to Login', on_click=lambda: ui.navigate.to('/login')).classes('mt-2')
             else:
                 with container:
                     ui.label('Failed to load resumes. Please check your connection.').classes('text-red-500')
@@ -180,14 +195,12 @@ async def handle_upload(file, location, radius, refresh_callback=None):
             ui.notify('Uploading resume...', color='blue')
         except Exception:
             logging.info('Upload started (notification failed)')
-
-        # Use API client for upload
         result = await api_client.upload_resume(
             file_name=file.name,
             file_content=file.content.read(),
             file_type=file.type,
-            location=location,  # Include location in the upload
-            radius=radius       # Include radius in the upload
+            location=location,
+            radius=radius
         )
         
         if result.get('success'):
@@ -196,10 +209,8 @@ async def handle_upload(file, location, radius, refresh_callback=None):
             except Exception:
                 logging.info('Upload successful (notification failed)')
             
-            # Add a small delay to ensure database transaction is committed
             await asyncio.sleep(0.5)
             
-            # Refresh the current page instead of navigating
             try:
                 if refresh_callback:
                     await refresh_callback()
@@ -207,7 +218,6 @@ async def handle_upload(file, location, radius, refresh_callback=None):
                     await current_page_refresh()
             except Exception as refresh_error:
                 logging.error(f'Failed to refresh page after upload: {str(refresh_error)}')
-                # If refresh fails, try again after a longer delay
                 try:
                     await asyncio.sleep(1.0)
                     if refresh_callback:
