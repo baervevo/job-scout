@@ -1,6 +1,4 @@
-import queue
 import threading
-import time
 import asyncio
 from typing import Tuple, List, Callable
 
@@ -12,54 +10,55 @@ from src.processing.matching_processor import MatchingProcessor
 from src.utils.logger import logger
 
 class MatchingQueue:
-    _matching_queue: queue.Queue[Tuple[ResumeKeywordData, ListingKeywordData]]
+    _matching_queue: asyncio.Queue[Tuple[ResumeKeywordData, ListingKeywordData]]
     _matching_processor: MatchingProcessor
     _on_match_callbacks: List[Callable[[Match], None]]
 
-    _thread: threading.Thread
-    _stop_event: threading.Event
-    _mutex: threading.Lock
+    _processing_task: asyncio.Task | None
+    _stop_event: asyncio.Event
 
     def __init__(self, matching_processor: MatchingProcessor):
-        self._matching_queue = queue.Queue()
+        self._matching_queue = asyncio.Queue()
         self._matching_processor = matching_processor
         self._on_match_callbacks = []
+        self._processing_task = None
+        self._stop_event = asyncio.Event()
 
-        self._stop_event = threading.Event()
-        self._thread = threading.Thread(target=self._thread_func)
-        self._mutex = threading.Lock()
-        self._thread.start()
+    async def start(self) -> None:
+        self._stop_event.clear()
+        self._processing_task = asyncio.create_task(self._process_matches())
 
-    def _thread_func(self) -> None:
-        asyncio.run(self._process_matches())
+    async def stop(self) -> None:
+        self._stop_event.set()
+        if self._processing_task:
+            await self._processing_task
+            self._processing_task = None
 
     def enqueue(self, resume: ResumeKeywordData, listing: ListingKeywordData) -> None:
-        with self._mutex:
-            self._matching_queue.put((resume, listing))
+        self._matching_queue.put_nowait((resume, listing))
 
     def register_on_match_callback(self, callback: Callable[[Match], None]) -> None:
-        with self._mutex:
-            self._on_match_callbacks.append(callback)
+        self._on_match_callbacks.append(callback)
 
     async def _process_matches(self) -> None:
         while not self._stop_event.is_set():
-            while self._matching_queue.empty():
-                time.sleep(60) # TODO(@mariusz): make this configurable
             try:
-                resume, listing = self._matching_queue.get(timeout=1)
+                resume, listing = await asyncio.wait_for(self._matching_queue.get(), timeout=60)
                 match = await self._matching_processor.match(resume, listing)
-                self._notify_on_match(match)
-            except queue.Empty:
+                if match is not None:
+                    await self._notify_on_match(match)
+            except asyncio.TimeoutError:
+                continue
+            except Exception as e:
+                logger.error(f"Error processing match: {str(e)}")
                 continue
 
-    def _notify_on_match(self, match: Match) -> None:
-        with self._mutex:
-            for callback in self._on_match_callbacks:
-                callback(match)
-
-    def stop(self) -> None:
-        self._stop_event.set()
-        self._thread.join()
+    async def _notify_on_match(self, match: Match) -> None:
+        for callback in self._on_match_callbacks:
+            try:
+                await callback(match)
+            except Exception as e:
+                logger.error(f"Error in match callback {callback.__name__}: {str(e)}")
 
 _matching_queue = None
 _mutex = threading.Lock()

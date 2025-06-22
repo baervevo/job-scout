@@ -30,11 +30,19 @@ class Settings(BaseSettings):
     
     JOOBLE_API_KEY: str = Field(..., env='JOOBLE_API_KEY')
     JOOBLE_HOST: str = "https://jooble.org"
-    JOOBLE_MAX_RESULTS: int = Field(2, env='JOOBLE_MAX_RESULTS')
+    JOOBLE_MAX_RESULTS: int = Field(50, env='JOOBLE_MAX_RESULTS')
 
     LOGGING_LEVEL: int = logging.DEBUG
     LOGGING_FORMAT: str = "%(name)s @ %(asctime)s [%(levelname)s]: %(message)s"
 
-    MATCHING_COSINE_THRESHOLD: float = Field(0.5, env='MATCHING_COSINE_THRESHOLD')
+    MATCHING_COSINE_THRESHOLD: float = Field(0.3, env='MATCHING_COSINE_THRESHOLD')
+    
+    # Ollama optimization settings
+    OLLAMA_ENABLED: bool = Field(True, env='OLLAMA_ENABLED')
+    OLLAMA_TIMEOUT: float = Field(30.0, env='OLLAMA_TIMEOUT')
+    OLLAMA_MAX_WORKERS: int = Field(2, env='OLLAMA_MAX_WORKERS')
+    OLLAMA_MODEL: str = Field("llama3", env='OLLAMA_MODEL')
+    OLLAMA_CONTEXT_SIZE: int = Field(2048, env='OLLAMA_CONTEXT_SIZE')
+    OLLAMA_MAX_TOKENS: int = Field(256, env='OLLAMA_MAX_TOKENS')
     
 settings = Settings()

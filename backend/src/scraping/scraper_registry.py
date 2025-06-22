@@ -62,3 +62,23 @@ async def run_all_scrapers():
             await manager.run_scraper()
         except Exception as e:
             logger.error(f"Error in {name}: {str(e)}")
+
+
+async def initialize_query_manager():
+    global _query_manager
+    if _query_manager and hasattr(_query_manager, 'initialize'):
+        try:
+            await _query_manager.initialize()
+            logger.info("Query manager initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize query manager: {str(e)}")
+
+
+async def shutdown_query_manager():
+    global _query_manager
+    if _query_manager and hasattr(_query_manager, 'shutdown'):
+        try:
+            await _query_manager.shutdown()
+            logger.info("Query manager shutdown successfully")
+        except Exception as e:
+            logger.error(f"Failed to shutdown query manager: {str(e)}")

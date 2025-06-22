@@ -16,4 +16,4 @@ class Resume(Base):
     last_evaluated_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="resumes")
-    matches = relationship("Match", back_populates="resume")
+    matches = relationship("Match", back_populates="resume", cascade="all, delete-orphan")

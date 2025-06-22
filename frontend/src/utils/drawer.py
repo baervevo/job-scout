@@ -1,12 +1,10 @@
 import asyncio
 import logging
 
-import httpx
 from nicegui import ui
 
 from src.styles import PAGE_BUTTON
-
-API_URL = 'http://localhost:8000'
+from src.api_client import api_client
 
 
 def left_drawer():
@@ -21,11 +19,11 @@ def left_drawer():
 
 
 async def handle_logout():
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(f'{API_URL}/auth/logout')
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(f'Logout error: {str(e)}')
-    logging.info('Successfully logged out')
-    ui.navigate.to('/login')
+    try:
+        await api_client.logout()
+        logging.info('Successfully logged out')
+        ui.navigate.to('/login')
+    except Exception as e:
+        logging.error(f'Logout error: {str(e)}')
+        # Even if logout fails on backend, redirect to login
+        ui.navigate.to('/login')

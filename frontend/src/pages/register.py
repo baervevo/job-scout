@@ -1,11 +1,9 @@
 import logging
 
-import httpx
 from nicegui import ui
 
 from src.styles import PURPLE_BUTTON
-
-API_URL = 'http://localhost:8000'
+from src.api_client import api_client
 
 
 @ui.page('/register')
@@ -21,7 +19,7 @@ def register_page():
         ui.button('Register', on_click=lambda: handle_register(username_input.value, password_input.value,
                                                                rep_password_input.value)).classes(
             f'{PURPLE_BUTTON} w-full')
-        ui.link(f'Back to login page', '/login').classes('text-purple-400 no-underline')
+        ui.link('Back to login page', '/login').classes('text-purple-400 no-underline')
 
 
 async def handle_register(username, password, rep_password):
@@ -32,25 +30,19 @@ async def handle_register(username, password, rep_password):
         ui.notify("Passwords do not match!", color='red')
         return
 
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        try:
-            response = await client.post(
-                f'{API_URL}/auth/register',
-                data={'login': username, 'password': password}
-            )
-            response.raise_for_status()
+    try:
+        result = await api_client.register(username, password)
+        if result.get('success'):
             ui.navigate.to('/login?msg=Registration%20successful')
-        except httpx.HTTPStatusError as e:
-            detail = e.response.json().get('detail', 'Unknown error')
-            ui.notify(f'Registration failed: {detail}', color='red')
-            logging.error(f'Registration error: {detail}')
-        except Exception as e:
-            ui.notify(f'Error: {str(e)}', color='red')
-            logging.error(f'Registration error: {str(e)}')
-
-
-def check_password_match(password: str, rep_password: str) -> bool:
-    if password != rep_password:
-        ui.notify('Passwords do not match!', color='red')
-        return False
-    return True
+        else:
+            ui.notify('Registration failed', color='red')
+    except Exception as e:
+        error_msg = 'Registration failed'
+        if hasattr(e, 'response'):
+            try:
+                error_detail = e.response.json().get('detail', 'Unknown error')
+                error_msg = f'Registration failed: {error_detail}'
+            except:
+                pass
+        ui.notify(error_msg, color='red')
+        logging.error(f'Registration error: {str(e)}')

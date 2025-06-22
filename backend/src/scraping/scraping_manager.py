@@ -14,7 +14,7 @@ class ScrapingManager:
     _scraper: ListingScraper
     _query_manager: QueryManager
     _listing_processor: ListingProcessor
-    _listing_callbacks: List[Callable[[ListingKeywordData], None]]
+    _listing_callbacks: List[Callable[[ListingKeywordData], ListingKeywordData]]
 
     def __init__(
         self,
@@ -38,10 +38,16 @@ class ScrapingManager:
         flattened_results = list(chain.from_iterable(results))
         if not flattened_results:
             return
-        for callback in self._listing_callbacks:
-            for listing in flattened_results:
-                await callback(listing)
+        for listing in flattened_results:
+            current_listing = listing
+            for callback in self._listing_callbacks:
+                try:
+                    result = await callback(current_listing)
+                    if isinstance(result, ListingKeywordData):
+                        current_listing = result
+                except Exception as e:
+                    logger.error(f"Error in callback {callback.__name__}: {str(e)}")
+                    continue
 
-    def register_listing_callback(self, callback: Callable[[ListingKeywordData], None]) -> None:
+    def register_listing_callback(self, callback: Callable[[ListingKeywordData], ListingKeywordData]) -> None:
         self._listing_callbacks.append(callback)
-    

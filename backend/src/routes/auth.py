@@ -17,18 +17,23 @@ async def login(
         password: str = Form(...),
         db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(UserSchema).where(UserSchema.login == login)
-    )
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if not user.password == password:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    request.session["user_id"] = user.id
-
-    return {"success": "true"}
+    try:
+        result = await db.execute(
+            select(UserSchema).where(UserSchema.login == login)
+        )
+        user = result.scalars().first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if not user.password == password:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        request.session["user_id"] = user.id
+        logger.info(f"User {login} logged in successfully")
+        return {"success": True, "user_id": user.id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error for user {login}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/register")
@@ -37,20 +42,38 @@ async def register(
         password: str = Form(...),
         db: AsyncSession = Depends(get_db),
 ):
-    logger.info(f"Registering user: {login}")
-    existing_user = await db.execute(
-        select(UserSchema).filter(UserSchema.login == login)
-    )
-    if existing_user.scalars().first():
-        raise HTTPException(status_code=400, detail="login already exists")
-    new_user = UserSchema(login=login, password=password)
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-    return {"success": "true"}
+    if not login or not password:
+        raise HTTPException(status_code=400, detail="Login and password are required")
+    try:
+        logger.info(f"Attempting to register user: {login}")
+        existing_user_result = await db.execute(
+            select(UserSchema).filter(UserSchema.login == login)
+        )
+        existing_user = existing_user_result.scalars().first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User already exists")
+        new_user = UserSchema(login=login, password=password)
+        db.add(new_user)
+        await db.commit()
+        await db.refresh(new_user)
+        logger.info(f"User {login} registered successfully with ID {new_user.id}")
+        return {"success": True, "user_id": new_user.id}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Registration error for user {login}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/logout")
 async def logout(request: Request):
-    request.session.clear()
-    return {"success": "true"}
+    try:
+        user_id = request.session.get("user_id")
+        request.session.clear()
+        logger.info(f"User {user_id} logged out successfully")
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Logout error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")

@@ -1,7 +1,11 @@
 import re
 from html import unescape
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
 import ollama
+from config import settings
 
 
 def clean_html_text(text: str) -> str:
@@ -15,17 +19,43 @@ def clean_html_text(text: str) -> str:
     return text
 
 
-def ollama_api_call(prompt: str, model: str, temperature: float = 0.2) -> str:
+_ollama_executor = ThreadPoolExecutor(
+    max_workers=settings.OLLAMA_MAX_WORKERS, 
+    thread_name_prefix="ollama_"
+)
+
+def ollama_api_call(prompt: str, model: str = None, temperature: float = 0.2) -> str:
+    if not settings.OLLAMA_ENABLED:
+        raise RuntimeError("Ollama is disabled")
+        
     response = ollama.chat(
-        model=model,
+        model=model or settings.OLLAMA_MODEL,
         messages=[
             {'role': 'user', 'content': prompt}
         ],
         options={
-            'temperature': temperature
+            'temperature': temperature,
+            'num_ctx': settings.OLLAMA_CONTEXT_SIZE,
+            'num_predict': settings.OLLAMA_MAX_TOKENS,
         }
     )
     return response['message']['content'].strip()
+
+async def ollama_api_call_async(prompt: str, model: str = None, temperature: float = 0.2) -> Optional[str]:
+    if not settings.OLLAMA_ENABLED:
+        return None
+        
+    try:
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            _ollama_executor,
+            lambda: ollama_api_call(prompt, model, temperature)
+        )
+        return result
+    except Exception as e:
+        import logging
+        logging.warning(f"Ollama API call failed: {str(e)}")
+        return None
 
 
 def kw_text_to_list(text: str) -> list[str]:

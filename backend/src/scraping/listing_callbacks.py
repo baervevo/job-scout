@@ -19,7 +19,7 @@ async def log_listing_keywords(
     from src.utils.logger import logger
     logger.info(f"Listing keywords: {listing.keywords}")
 
-async def process_and_commit_listing(listing: ListingKeywordData) -> None:
+async def process_and_commit_listing(listing: ListingKeywordData) -> ListingKeywordData:
     async def _row_from_listing_keyword_data(
         data: ListingKeywordData,
         db_session: AsyncSession
@@ -41,25 +41,49 @@ async def process_and_commit_listing(listing: ListingKeywordData) -> None:
     
     async with async_session_maker() as db_session:
         try:
-            db_session.add(
-                await _row_from_listing_keyword_data(listing, db_session)
-            )
+            listing_schema = await _row_from_listing_keyword_data(listing, db_session)
+            db_session.add(listing_schema)
             await db_session.commit()
+            await db_session.refresh(listing_schema)
+            updated_listing = ListingKeywordData(
+                id=listing_schema.id,
+                keywords=listing.keywords,
+                embedding=listing.embedding,
+                title=listing.title,
+                company=listing.company,
+                description=listing.description,
+                remote=listing.remote,
+                created_at=listing.created_at,
+                updated_at=listing.updated_at,
+                salary_min=listing.salary_min,
+                salary_max=listing.salary_max,
+                currency=listing.currency,
+                location=listing.location,
+                link=listing.link
+            )
+            logger.info(f"Listing saved to database with ID: {updated_listing.id}")
+            return updated_listing
+            
         except IntegrityError as e:
             await db_session.rollback()
+            logger.error(f"Failed to save listing: {str(e)}")
+            return listing
 
-async def enqueue_matches(listing: ListingKeywordData) -> None:
+async def enqueue_matches(listing: ListingKeywordData) -> ListingKeywordData:
     from src.matching.matching_queue import get_matching_queue
     from src.models.resume.resume_keyword_data import ResumeKeywordData
     from src.db.schemas.resume import Resume as ResumeSchema
     from src.db.session import async_session_maker
-
+    if listing.id is None:
+        logger.error(f"Cannot enqueue matches for listing with None ID: {listing.title}")
+        return listing
     resumes = []
     async with async_session_maker() as db_session:
         result = await db_session.execute(
             select(ResumeSchema)
         )
         resumes = result.scalars().all()
+    logger.info(f"Enqueuing matches for listing {listing.id} with {len(resumes)} resumes")
     for resume in resumes:
         kw_data = ResumeKeywordData(
             id=resume.id,
@@ -71,3 +95,4 @@ async def enqueue_matches(listing: ListingKeywordData) -> None:
             embedding=list(map(float, resume.embedding.split(","))) if resume.embedding else []
         )
         get_matching_queue().enqueue(kw_data, listing)
+    return listing

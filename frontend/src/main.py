@@ -1,8 +1,13 @@
 from nicegui import ui
+from config import settings
 
 
 def main():
-    ui.run(dark=True)
+    ui.run(
+        host=settings.FRONTEND_HOST,
+        port=settings.FRONTEND_PORT,
+        dark=True
+    )
 
 
 if __name__ in {"__main__", "__mp_main__"}:
