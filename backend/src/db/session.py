@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngin
 from sqlalchemy.orm import sessionmaker
 from typing import AsyncGenerator
 
-from config import settings
+from backend.config import settings
 
 from src.utils.logger import logger
 

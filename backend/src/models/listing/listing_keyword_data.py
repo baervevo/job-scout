@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from src.models.keyword_data import KeywordData
+from backend.src.models.keyword_data import KeywordData
 
 
 class ListingKeywordData(KeywordData):

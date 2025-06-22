@@ -8,7 +8,7 @@ from src.db.session import async_session_maker
 from src.db.schemas.company import Company as CompanySchema
 from src.db.schemas.listing import Listing as ListingSchema
 
-from src.models.listing.listing_keyword_data import ListingKeywordData
+from backend.src.models.listing.listing_keyword_data import ListingKeywordData
 
 from src.utils.logger import logger
 from src.utils.pdf import extract_text_from_pdf
@@ -70,7 +70,7 @@ async def process_and_commit_listing(listing: ListingKeywordData) -> ListingKeyw
 
 async def enqueue_matches(listing: ListingKeywordData) -> ListingKeywordData:
     from src.matching.matching_queue import get_matching_queue
-    from src.models.resume.resume_keyword_data import ResumeKeywordData
+    from backend.src.models.resume.resume_keyword_data import ResumeKeywordData
     from src.db.schemas.resume import Resume as ResumeSchema
     from src.db.session import async_session_maker
     

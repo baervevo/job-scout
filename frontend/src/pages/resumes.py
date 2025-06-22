@@ -1,4 +1,5 @@
 from typing import List
+from typing import List
 import asyncio
 import logging
 import base64
@@ -56,7 +57,7 @@ def resumes_page():
                 else:
                     for resume in resumes:
                         card = ui.card().tight().classes(
-                            'w-full h-40 flex items-center justify-center shadow-lg border border-purple-200 dark:border-purple-800')
+                            'w-full h-40 flex items-center justify-center shadow-lg border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300')
                         with card:
                             with ui.column().classes('w-full p-4'):
                                 ui.label(f'{resume.id}. {resume.file_name}').classes(

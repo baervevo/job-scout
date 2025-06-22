@@ -1,7 +1,7 @@
 from typing import List
 
-from src.models.listing.listing import Listing
-from src.models.listing.listing_keyword_data import ListingKeywordData
+from backend.src.models.listing.listing import Listing
+from backend.src.models.listing.listing_keyword_data import ListingKeywordData
 from src.processing.processor import Processor
 from src.prompts.llama3.listing_keywords import PROMPT as PROMPT_LISTING_KEYWORDS
 from src.utils.processing_utils import ollama_api_call_async, kw_text_to_list

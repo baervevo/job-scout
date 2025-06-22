@@ -56,7 +56,7 @@ def setup_scrapers() -> None:
     set_query_manager(
         AggregatingQueryManager()
     )
-    from src.models.query import Query
+    from backend.src.models.query import Query
     get_query_manager()
     listing_callbacks = [
         process_and_commit_listing,

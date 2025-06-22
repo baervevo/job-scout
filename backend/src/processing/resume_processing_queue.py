@@ -2,8 +2,8 @@ import threading
 import asyncio
 from typing import List, Callable
 
-from src.models.resume.resume import Resume
-from src.models.resume.resume_keyword_data import ResumeKeywordData
+from backend.src.models.resume.resume import Resume
+from backend.src.models.resume.resume_keyword_data import ResumeKeywordData
 from src.processing.resume_processor import ResumeProcessor
 
 class ResumeProcessingQueue:

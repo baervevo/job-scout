@@ -87,17 +87,17 @@ def create_match_card(match_data: dict, parent_container):
                                     ui.icon('place').style('margin: 0')
                                     ui.label(listing_info.get('location', 'Location not specified'))
 
-                    # Right side: Salary info
-                    with ui.column().classes('text-right min-w-fit'):
-                        salary_min = listing_info.get('salary_min')
-                        salary_max = listing_info.get('salary_max')
-                        currency = listing_info.get('currency', 'USD')
-                        
-                        if salary_min is not None and salary_max is not None:
-                            salary = f"{currency} {salary_min} - {salary_max}"
-                        else:
-                            salary = "Salary not specified"
-                        ui.label(salary).classes('text-xl font-semibold text-purple-300')
+                                with ui.row().style('gap: 4px; align-items: center;'):
+                                    salary_min = listing_info.get('salary_min')
+                                    salary_max = listing_info.get('salary_max')
+                                    currency = listing_info.get('currency', 'USD')
+
+                                    if salary_min is not None and salary_max is not None:
+                                        salary = f"{currency} {salary_min} - {salary_max}"
+                                    else:
+                                        salary = "Salary not specified"
+                                    ui.icon('attach_money').style('margin: 0')
+                                    ui.label(salary)
 
                 # Missing keywords section
                 missing_keywords = match_info.get('missing_keywords', [])

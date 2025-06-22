@@ -1,7 +1,7 @@
 from typing import Dict
 
-from config import settings
-from src.models.query import Query
+from backend.config import settings
+from backend.src.models.query import Query
 from src.processing.listing_processor import ListingProcessor
 from src.scraping.query_managers.query_manager import QueryManager
 from src.scraping.query_managers.simple_query_manager import SimpleQueryManager

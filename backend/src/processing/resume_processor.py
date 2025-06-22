@@ -1,7 +1,7 @@
 from typing import List, Optional
 
-from src.models.resume.resume import Resume
-from src.models.resume.resume_keyword_data import ResumeKeywordData
+from backend.src.models.resume.resume import Resume
+from backend.src.models.resume.resume_keyword_data import ResumeKeywordData
 from src.processing.processor import Processor
 from src.prompts.llama3.resume_keywords import PROMPT as PROMPT_RESUME_KEYWORDS
 from src.utils.logger import logger

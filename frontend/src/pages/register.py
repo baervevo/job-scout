@@ -9,7 +9,7 @@ from src.api_client import api_client
 @ui.page('/register')
 def register_page():
     with ui.row().classes('justify-center w-full mt-10'):
-        ui.label('Resume Matcher').classes('text-5xl font-bold text-purple-800 dark:text-purple-200 mb-4')
+        ui.label('JobScout').classes('text-5xl font-bold text-purple-800 dark:text-purple-200 mb-4')
 
     with ui.column().classes('absolute-center items-center w-64 h-96'):
         ui.label('Register').classes('text-2xl font-bold text-purple-800 dark:text-purple-200 mb-4')

@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from src.models.resume.resume import Resume
+from backend.src.models.resume.resume import Resume
 from src.db.schemas.resume import Resume as ResumeSchema
 from src.db.schemas.user import User
 from src.db.session import get_db
@@ -17,7 +17,7 @@ from src.db.session import get_db
 from src.processing.resume_processing_queue import ResumeProcessingQueue, get_resume_processing_queue
 from src.utils.pdf import extract_text_from_pdf
 
-from config import settings
+from backend.config import settings
 from src.utils.logger import logger
 
 router = APIRouter()

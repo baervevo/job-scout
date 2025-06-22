@@ -1,5 +1,5 @@
 from datetime import datetime
-from src.models.match import Match
+from backend.src.models.match import Match
 from src.utils.logger import logger
 
 def log_match(match: Match) -> None:

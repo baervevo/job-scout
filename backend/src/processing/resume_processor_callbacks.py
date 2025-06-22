@@ -1,8 +1,8 @@
 from src.db.session import async_session_maker
 from src.db.schemas.resume import Resume as ResumeSchema
 
-from src.models.resume.resume_keyword_data import ResumeKeywordData
-from src.models.query import Query
+from backend.src.models.resume.resume_keyword_data import ResumeKeywordData
+from backend.src.models.query import Query
 from src.scraping.scraper_registry import get_query_manager
 
 from src.utils.logger import logger
@@ -68,7 +68,7 @@ async def enqueue_matches(resume: ResumeKeywordData) -> None:
             logger.warning(f"Resume {resume.id} missing keywords or embedding, skipping match enqueuing")
             return
         from src.matching.matching_queue import get_matching_queue
-        from src.models.listing.listing_keyword_data import ListingKeywordData
+        from backend.src.models.listing.listing_keyword_data import ListingKeywordData
         from src.db.schemas.listing import Listing as ListingSchema
         from src.db.schemas.company import Company as CompanySchema
         from src.db.session import async_session_maker
