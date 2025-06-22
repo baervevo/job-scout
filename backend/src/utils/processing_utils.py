@@ -44,7 +44,6 @@ def ollama_api_call(prompt: str, model: str = None, temperature: float = 0.2) ->
 async def ollama_api_call_async(prompt: str, model: str = None, temperature: float = 0.2) -> Optional[str]:
     if not settings.OLLAMA_ENABLED:
         return None
-        
     try:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(
@@ -54,8 +53,8 @@ async def ollama_api_call_async(prompt: str, model: str = None, temperature: flo
         return result
     except Exception as e:
         import logging
-        logging.warning(f"Ollama API call failed: {str(e)}")
-        return None
+        logging.error(f"Ollama API call failed: {str(e)}")
+        raise e
 
 
 def kw_text_to_list(text: str) -> list[str]:

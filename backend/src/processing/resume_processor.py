@@ -21,19 +21,32 @@ class ResumeProcessor(Processor):
 
     async def process_resume(self, resume: Resume) -> ResumeKeywordData:
         prompt = PROMPT_RESUME_KEYWORDS.format(resume.content)
-        resume_content_llm_processed = await ollama_api_call_async(
-            prompt, 
-            model=self.llm_model_name
-        )
-        if resume_content_llm_processed is None:
-            logger.warning(f"LLM processing failed for resume {resume.id}, using fallback keyword extraction")
+        
+        try:
+            # Use non-blocking async Ollama call
+            resume_content_llm_processed = await ollama_api_call_async(
+                prompt, 
+                model=self.llm_model_name
+            )
+            
+            if resume_content_llm_processed is None:
+                # Only happens if Ollama is disabled
+                logger.info(f"Ollama is disabled, using fallback keyword extraction for resume {resume.id}")
+                fallback_keywords = self.extract_keywords(resume.content, top_n=10)
+                resume_kw = ", ".join(fallback_keywords)
+                kw_list = fallback_keywords
+            else:
+                # Normal LLM processing
+                resume_content_llm_processed = resume_content_llm_processed.lower().strip()
+                resume_kw = format_keywords(resume_content_llm_processed)
+                kw_list = kw_text_to_list(resume_kw)
+                
+        except Exception as e:
+            # Only fall back on actual errors (connection issues, model problems, etc.)
+            logger.warning(f"Ollama failed for resume {resume.id} ({str(e)}), using fallback keyword extraction")
             fallback_keywords = self.extract_keywords(resume.content, top_n=10)
             resume_kw = ", ".join(fallback_keywords)
             kw_list = fallback_keywords
-        else:
-            resume_content_llm_processed = resume_content_llm_processed.lower().strip()
-            resume_kw = format_keywords(resume_content_llm_processed)
-            kw_list = kw_text_to_list(resume_kw)
 
         resume_vec = self.embed_text(resume_kw if isinstance(resume_kw, str) else ", ".join(kw_list))
         resume_vec_converted = resume_vec.tolist()

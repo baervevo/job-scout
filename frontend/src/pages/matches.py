@@ -67,35 +67,39 @@ def create_match_card(match_data: dict, parent_container):
         
         with card:
             with ui.column().classes('p-4'):
-                with ui.row().classes('w-full items-center'):
-                    # Similarity score
-                    similarity = match_info.get('cosine_similarity', 0)
-                    color = interpolate_color(similarity, saturation_boost=1, brightness_factor=1)
-                    ui.label(f'{similarity * 100:.0f}%').classes('text-7xl').style(f'color: {color}')
-                    
-                    # Job details
-                    with ui.column().classes('flex-1 ml-4'):
-                        ui.label(listing_info.get('title', 'Unknown Position')).classes('text-3xl font-bold')
-                        with ui.row().style('gap: 8px; align-items: center;'):
-                            with ui.row().style('gap: 4px; align-items: center;'):
-                                ui.icon('business').style('margin: 0')
-                                ui.label(listing_info.get('company', 'Unknown Company'))
-                            with ui.row().style('gap: 4px; align-items: center;'):
-                                ui.icon('place').style('margin: 0')
-                                ui.label(listing_info.get('location', 'Location not specified'))
+                # Top row with similarity score and job info
+                with ui.row().classes('w-full items-start justify-between'):
+                    # Left side: Similarity score and job details
+                    with ui.row().classes('items-center flex-1'):
+                        # Similarity score
+                        similarity = match_info.get('cosine_similarity', 0)
+                        color = interpolate_color(similarity, saturation_boost=1, brightness_factor=1)
+                        ui.label(f'{similarity * 100:.0f}%').classes('text-7xl mr-4').style(f'color: {color}')
+                        
+                        # Job details
+                        with ui.column().classes('flex-1'):
+                            ui.label(listing_info.get('title', 'Unknown Position')).classes('text-3xl font-bold mb-2')
+                            with ui.row().style('gap: 8px; align-items: center;'):
+                                with ui.row().style('gap: 4px; align-items: center;'):
+                                    ui.icon('business').style('margin: 0')
+                                    ui.label(listing_info.get('company', 'Unknown Company'))
+                                with ui.row().style('gap: 4px; align-items: center;'):
+                                    ui.icon('place').style('margin: 0')
+                                    ui.label(listing_info.get('location', 'Location not specified'))
 
-                    # Salary info
-                    salary_min = listing_info.get('salary_min')
-                    salary_max = listing_info.get('salary_max')
-                    currency = listing_info.get('currency', 'USD')
-                    
-                    if salary_min is not None and salary_max is not None:
-                        salary = f"{currency} {salary_min} - {salary_max}"
-                    else:
-                        salary = "Salary not specified"
-                    ui.label(salary).classes('text-2xl absolute right-4 top-4')
+                    # Right side: Salary info
+                    with ui.column().classes('text-right min-w-fit'):
+                        salary_min = listing_info.get('salary_min')
+                        salary_max = listing_info.get('salary_max')
+                        currency = listing_info.get('currency', 'USD')
+                        
+                        if salary_min is not None and salary_max is not None:
+                            salary = f"{currency} {salary_min} - {salary_max}"
+                        else:
+                            salary = "Salary not specified"
+                        ui.label(salary).classes('text-xl font-semibold text-purple-300')
 
-                # Missing keywords
+                # Missing keywords section
                 missing_keywords = match_info.get('missing_keywords', [])
                 if missing_keywords:
                     with ui.row().classes('flex-wrap gap-2 mt-4'):

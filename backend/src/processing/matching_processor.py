@@ -72,12 +72,17 @@ class MatchingProcessor(Processor):
             return 0.0
 
     async def _find_missing_keywords_async(self, resume_keywords: List[str], listing_keywords: List[str]) -> List[str]:
+        """Async version with LLM fallback"""
         try:
             if not resume_keywords or not listing_keywords:
                 return listing_keywords if listing_keywords else []
+            
+            # Fast fallback calculation
             resume_set = set(kw.lower().strip() for kw in resume_keywords)
             listing_set = set(kw.lower().strip() for kw in listing_keywords)
             missing_simple = list(listing_set - resume_set)
+            
+            # Try LLM enhancement
             try:
                 resumes_kw_joined = ", ".join(resume_keywords)
                 listings_kw_joined = ", ".join(listing_keywords)
@@ -89,14 +94,18 @@ class MatchingProcessor(Processor):
                     temperature=0.1
                 )
                 
-                if missing_kw:
-                    missing_kw_clean = format_keywords(missing_kw.lower().strip())
-                    missing_kw_list = kw_text_to_list(missing_kw_clean)
-                    if missing_kw_list:
-                        return missing_kw_list
-                
-                logger.debug("LLM returned empty or invalid keywords, using simple set-based approach")
-                return missing_simple
+                if missing_kw is None:
+                    # Ollama disabled
+                    logger.debug("Ollama disabled, using simple set-based keyword matching")
+                    return missing_simple
+                    
+                missing_kw_clean = format_keywords(missing_kw.lower().strip())
+                missing_kw_list = kw_text_to_list(missing_kw_clean)
+                if missing_kw_list:
+                    return missing_kw_list
+                else:
+                    logger.debug("LLM returned empty keywords, using simple set-based approach")
+                    return missing_simple
                 
             except Exception as llm_error:
                 logger.debug(f"LLM keyword matching failed: {str(llm_error)}, using simple approach")
@@ -107,22 +116,33 @@ class MatchingProcessor(Processor):
             return []
 
     async def _generate_summary_async(self, resume_keywords: List[str], listing_keywords: List[str]) -> str:
+        """Async summary generation with fallback"""
         try:
             if not resume_keywords or not listing_keywords:
                 return "Unable to generate summary due to missing keywords"
+            
+            # Try LLM summary
             try:
                 resumes_kw_joined = ", ".join(resume_keywords)
                 listings_kw_joined = ", ".join(listing_keywords)
                 prompt = SUMMARY_MATCHING_PROMPT.format(resumes_kw_joined, listings_kw_joined)
+                
                 summary = await ollama_api_call_async(
                     prompt, 
                     model=self.llm_model_name, 
                     temperature=0.3
                 )
-                if summary and len(summary.strip()) > 10:
+                
+                if summary is None:
+                    # Ollama disabled
+                    logger.debug("Ollama disabled, using fallback summary")
+                elif summary and len(summary.strip()) > 10:
                     return summary.strip()
+                    
             except Exception as llm_error:
                 logger.debug(f"LLM summary generation failed: {str(llm_error)}, using fallback")
+            
+            # Simple fallback summary
             overlap = set(kw.lower() for kw in resume_keywords) & set(kw.lower() for kw in listing_keywords)
             return f"The candidate's resume shows {len(overlap)} matching skills out of {len(listing_keywords)} required. Key overlapping areas include: {', '.join(list(overlap)[:5])}."
             

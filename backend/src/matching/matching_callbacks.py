@@ -9,6 +9,9 @@ async def commit_match_to_db(match: Match) -> None:
     try:
         from src.db.session import async_session_maker
         from src.db.schemas.match import Match as MatchSchema
+        from src.db.schemas.resume import Resume as ResumeSchema
+        from src.db.schemas.listing import Listing as ListingSchema
+        from sqlalchemy import select
         
         async with async_session_maker() as db_session:
             missing_keywords_str = ",".join(match.missing_keywords) if match.missing_keywords else ""
@@ -23,6 +26,31 @@ async def commit_match_to_db(match: Match) -> None:
             if not match_data["resume_id"] or not match_data["listing_id"]:
                 logger.error(f"Invalid match data: missing resume_id or listing_id")
                 return
+            resume_result = await db_session.execute(
+                select(ResumeSchema).filter(ResumeSchema.id == match_data["resume_id"])
+            )
+            resume = resume_result.scalars().first()
+            if not resume:
+                logger.warning(f"Cannot create match: resume {match_data['resume_id']} no longer exists")
+                return
+            listing_result = await db_session.execute(
+                select(ListingSchema).filter(ListingSchema.id == match_data["listing_id"])
+            )
+            listing = listing_result.scalars().first()
+            if not listing:
+                logger.warning(f"Cannot create match: listing {match_data['listing_id']} no longer exists")
+                return
+            existing_match_result = await db_session.execute(
+                select(MatchSchema).filter(
+                    MatchSchema.resume_id == match_data["resume_id"],
+                    MatchSchema.listing_id == match_data["listing_id"]
+                )
+            )
+            existing_match = existing_match_result.scalars().first()
+            if existing_match:
+                logger.debug(f"Match already exists between resume {match_data['resume_id']} and listing {match_data['listing_id']}")
+                return
+            
             row = MatchSchema(**match_data)
             db_session.add(row)
             await db_session.commit()

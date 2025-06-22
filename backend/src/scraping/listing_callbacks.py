@@ -63,7 +63,6 @@ async def process_and_commit_listing(listing: ListingKeywordData) -> ListingKeyw
             )
             logger.info(f"Listing saved to database with ID: {updated_listing.id}")
             return updated_listing
-            
         except IntegrityError as e:
             await db_session.rollback()
             logger.error(f"Failed to save listing: {str(e)}")
@@ -74,25 +73,45 @@ async def enqueue_matches(listing: ListingKeywordData) -> ListingKeywordData:
     from src.models.resume.resume_keyword_data import ResumeKeywordData
     from src.db.schemas.resume import Resume as ResumeSchema
     from src.db.session import async_session_maker
+    
     if listing.id is None:
-        logger.error(f"Cannot enqueue matches for listing with None ID: {listing.title}")
+        logger.warning(f"Skipping match enqueuing for listing with None ID: {listing.title}")
         return listing
-    resumes = []
-    async with async_session_maker() as db_session:
-        result = await db_session.execute(
-            select(ResumeSchema)
-        )
-        resumes = result.scalars().all()
-    logger.info(f"Enqueuing matches for listing {listing.id} with {len(resumes)} resumes")
-    for resume in resumes:
-        kw_data = ResumeKeywordData(
-            id=resume.id,
-            user_id=resume.user_id,
-            file_name=resume.file_name,
-            file_path=resume.file_path,
-            content=extract_text_from_pdf(resume.file_path) if resume.file_path else "",
-            keywords=resume.keywords.split(",") if resume.keywords else [],
-            embedding=list(map(float, resume.embedding.split(","))) if resume.embedding else []
-        )
-        get_matching_queue().enqueue(kw_data, listing)
+    if not listing.keywords or not listing.embedding:
+        logger.warning(f"Skipping match enqueuing for listing {listing.id} - missing keywords or embedding")
+        return listing
+    try:
+        resumes = []
+        async with async_session_maker() as db_session:
+            result = await db_session.execute(
+                select(ResumeSchema).filter(
+                    ResumeSchema.keywords.isnot(None),
+                    ResumeSchema.embedding.isnot(None)
+                )
+            )
+            resumes = result.scalars().all()
+        if not resumes:
+            logger.debug(f"No resumes with keywords/embeddings found for matching with listing {listing.id}")
+            return listing
+        logger.info(f"Enqueuing matches for listing {listing.id} with {len(resumes)} resumes")
+        for resume in resumes:
+            try:
+                kw_data = ResumeKeywordData(
+                    id=resume.id,
+                    user_id=resume.user_id,
+                    file_name=resume.file_name,
+                    file_path=resume.file_path,
+                    content=extract_text_from_pdf(resume.file_path) if resume.file_path else "",
+                    keywords=resume.keywords.split(",") if resume.keywords else [],
+                    embedding=list(map(float, resume.embedding.split(","))) if resume.embedding else []
+                )
+                if kw_data.keywords and kw_data.embedding:
+                    get_matching_queue().enqueue(kw_data, listing)
+                else:
+                    logger.debug(f"Skipping resume {resume.id} - missing keywords or embedding")
+            except Exception as resume_error:
+                logger.error(f"Error processing resume {resume.id} for matching: {str(resume_error)}")
+                continue
+    except Exception as e:
+        logger.error(f"Error enqueuing matches for listing {listing.id}: {str(e)}")
     return listing
