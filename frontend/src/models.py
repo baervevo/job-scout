@@ -38,9 +38,12 @@ class ListingKeywordData:
 
 class Resume:
     def __init__(self, id: int, user_id: int, file_name: str, uploaded_at: Optional[str] = None,
-                 keywords: Optional[List[str]] = None):
+                 keywords: Optional[List[str]] = None, location: Optional[str] = None, 
+                 radius: Optional[int] = None):
         self.id = id
         self.user_id = user_id
         self.file_name = file_name
         self.uploaded_at = uploaded_at
         self.keywords = keywords or []
+        self.location = location
+        self.radius = radius

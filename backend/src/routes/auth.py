@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.schemas.user import User as UserSchema
 from src.db.session import get_db
 from src.utils.logger import logger
+from src.utils.password import hash_password, verify_password
 
 router = APIRouter()
 
@@ -24,7 +25,7 @@ async def login(
         user = result.scalars().first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        if not user.password == password:
+        if not verify_password(password, user.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         request.session["user_id"] = user.id
         logger.info(f"User {login} logged in successfully")
@@ -52,7 +53,10 @@ async def register(
         existing_user = existing_user_result.scalars().first()
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
-        new_user = UserSchema(login=login, password=password)
+        
+        # Hash the password before storing
+        hashed_password = hash_password(password)
+        new_user = UserSchema(login=login, password=hashed_password)
         db.add(new_user)
         await db.commit()
         await db.refresh(new_user)

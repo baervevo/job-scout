@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 import os
 import shutil
 import asyncio
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, BackgroundTasks, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -63,6 +63,8 @@ async def process_resume_content(file_path: Path) -> str:
 async def upload_resume(
     request: Request,
     file: UploadFile = File(...),
+    location: Optional[str] = Form(None),
+    radius: Optional[int] = Form(None),
     db: AsyncSession = Depends(get_db),
     resume_processing_queue: ResumeProcessingQueue = Depends(get_resume_processing_queue)
 ):
@@ -92,6 +94,8 @@ async def upload_resume(
             user_id=user_id,
             file_name=file.filename,
             file_path=str(file_path),
+            location=location,
+            radius=radius
         )
         db.add(resume_db)
         await db.commit()
@@ -105,12 +109,14 @@ async def upload_resume(
             content=content
         )
         resume_processing_queue.enqueue(resume)
-        logger.info(f"Resume {resume.id} queued for processing")
+        logger.info(f"Resume {resume.id} queued for processing with location: {location}, radius: {radius}")
         return {
             "success": True, 
             "message": "Resume uploaded successfully",
             "resume_id": resume_db.id,
-            "filename": file.filename
+            "filename": file.filename,
+            "location": location,
+            "radius": radius
         }
     except HTTPException:
         raise
@@ -145,7 +151,9 @@ async def get_user_resumes(
                 "file_name": resume.file_name,
                 "uploaded_at": resume.uploaded_at.isoformat() if resume.uploaded_at else None,
                 "keywords": resume.keywords.split(",") if resume.keywords else [],
-                "last_evaluated_at": resume.last_evaluated_at.isoformat() if resume.last_evaluated_at else None
+                "last_evaluated_at": resume.last_evaluated_at.isoformat() if resume.last_evaluated_at else None,
+                "location": resume.location,
+                "radius": resume.radius
             }
             for resume in resumes
         ]

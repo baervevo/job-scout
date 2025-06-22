@@ -9,7 +9,7 @@ from config import settings
 class APIClient:
     def __init__(self, base_url: str = None):
         self.base_url = base_url or settings.API_URL
-        self._client = None  # Persistent client for session management
+        self._client = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create a persistent HTTP client with session support"""
@@ -20,6 +20,28 @@ class APIClient:
                 follow_redirects=True
             )
         return self._client
+
+    async def _handle_auth_error(self, response: httpx.Response):
+        """Handle authentication errors by redirecting to login"""
+        if response.status_code == 401:
+            logging.warning("Authentication failed - redirecting to login")
+            from nicegui import ui
+            ui.navigate.to('/login?msg=Session%20expired.%20Please%20log%20in%20again.')
+            return True
+        return False
+
+    async def _make_request(self, method: str, url: str, **kwargs):
+        """Make HTTP request with automatic auth error handling"""
+        client = await self._get_client()
+        response = await client.request(method, url, **kwargs)
+        if await self._handle_auth_error(response):
+            return type('MockResponse', (), {
+                'json': lambda: {'error': 'Authentication required'},
+                'content': b'',
+                'status_code': 401
+            })()
+        response.raise_for_status()
+        return response
 
     async def login(self, username: str, password: str) -> dict:
         """Login user"""
@@ -43,29 +65,34 @@ class APIClient:
 
     async def logout(self) -> dict:
         """Logout user"""
-        client = await self._get_client()
-        response = await client.post('/auth/logout')
-        response.raise_for_status()
+        response = await self._make_request('POST', '/auth/logout')
+        if response.status_code == 401:
+            return {'success': True}
         result = response.json()
-        # Close the client to clear session
         if self._client:
             await self._client.aclose()
             self._client = None
         return result
 
-    async def upload_resume(self, file_name: str, file_content: bytes, file_type: str) -> dict:
-        """Upload a resume file"""
-        client = await self._get_client()
+    async def upload_resume(self, file_name: str, file_content: bytes, file_type: str, location: str = None, radius: int = None) -> dict:
+        """Upload a resume file with optional location and radius"""
         files = {'file': (file_name, file_content, file_type)}
-        response = await client.post('/resumes/upload', files=files)
-        response.raise_for_status()
+        data = {}
+        if location:
+            data['location'] = location
+        if radius:
+            data['radius'] = radius
+        
+        response = await self._make_request('POST', '/resumes/upload', files=files, data=data)
+        if response.status_code == 401:
+            raise httpx.HTTPStatusError("Authentication required", request=None, response=response)
         return response.json()
 
     async def get_resumes(self) -> List[Resume]:
         """Get user's resumes"""
-        client = await self._get_client()
-        response = await client.get('/resumes/')
-        response.raise_for_status()
+        response = await self._make_request('GET', '/resumes/')
+        if response.status_code == 401:
+            raise httpx.HTTPStatusError("Authentication required", request=None, response=response)
         data = response.json()
         return [
             Resume(
@@ -73,40 +100,39 @@ class APIClient:
                 user_id=item['user_id'],
                 file_name=item['file_name'],
                 uploaded_at=item.get('uploaded_at'),
-                keywords=item.get('keywords', [])
+                keywords=item.get('keywords', []),
+                location=item.get('location'),
+                radius=item.get('radius')
             )
             for item in data
         ]
 
     async def delete_resume(self, resume_id: int) -> dict:
         """Delete a resume"""
-        client = await self._get_client()
-        response = await client.delete(f'/resumes/{resume_id}')
-        response.raise_for_status()
+        response = await self._make_request('DELETE', f'/resumes/{resume_id}')
+        if response.status_code == 401:
+            raise httpx.HTTPStatusError("Authentication required", request=None, response=response)
         return response.json()
 
     async def download_resume(self, resume_id: int) -> bytes:
         """Download a resume file"""
-        client = await self._get_client()
-        response = await client.get(f'/resumes/{resume_id}/file')
-        response.raise_for_status()
+        response = await self._make_request('GET', f'/resumes/{resume_id}/file')
+        if response.status_code == 401:
+            raise httpx.HTTPStatusError("Authentication required", request=None, response=response)
         return response.content
 
     async def get_matches(self, limit: int = 50, offset: int = 0) -> List[dict]:
         """Get user's job matches"""
-        client = await self._get_client()
-        response = await client.get(
-            '/matches/',
-            params={'limit': limit, 'offset': offset}
-        )
-        response.raise_for_status()
+        response = await self._make_request('GET', '/matches/', params={'limit': limit, 'offset': offset})
+        if response.status_code == 401:
+            raise httpx.HTTPStatusError("Authentication required", request=None, response=response)
         return response.json()
 
     async def get_match_details(self, match_id: int) -> dict:
         """Get detailed information about a specific match"""
-        client = await self._get_client()
-        response = await client.get(f'/matches/{match_id}')
-        response.raise_for_status()
+        response = await self._make_request('GET', f'/matches/{match_id}')
+        if response.status_code == 401:
+            raise httpx.HTTPStatusError("Authentication required", request=None, response=response)
         return response.json()
 
     async def close(self):
@@ -116,5 +142,4 @@ class APIClient:
             self._client = None
 
 
-# Global API client instance
 api_client = APIClient()

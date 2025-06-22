@@ -1,6 +1,7 @@
 from typing import List
 import asyncio
 import logging
+import base64
 
 from nicegui import ui
 
@@ -13,14 +14,35 @@ from src.api_client import api_client
 def resumes_page():
     left_drawer()
     container = ui.grid(columns=6).classes('gap-4 p-4 w-full')
+    
+    # Location and radius inputs (initially hidden)
+    location_input = ui.input('Job Location (e.g., "New York, NY" or "Remote")').classes('w-full mb-2').style('display: none')
+    radius_input = ui.number('Search Radius (km)', value=50, min=1, max=500).classes('w-full mb-2').style('display: none')
+    
     uploader = ui.upload(
         label='Upload your resume',
-        on_upload=lambda file: handle_upload(file, refresh_callback=refresh_resumes),
+        on_upload=lambda file: handle_upload(file, location_input.value, radius_input.value, refresh_callback=refresh_resumes),
         auto_upload=True
     ).props('accept=.pdf,.doc,.docx').props('hide-upload-button').classes('hidden')
 
     def open_uploader():
-        uploader.run_method('pickFiles')
+        # Show location and radius inputs in a dialog first
+        with ui.dialog().classes('w-96') as dialog, ui.card():
+            ui.label('Job Search Preferences').classes('text-lg font-bold mb-4')
+            
+            location_dialog_input = ui.input('Preferred Job Location').classes('w-full mb-4').props('placeholder="e.g., New York, NY or Remote"')
+            radius_dialog_input = ui.number('Search Radius (km)', value=50, min=1, max=500).classes('w-full mb-4')
+            
+            with ui.row().classes('w-full justify-end gap-2'):
+                ui.button('Cancel', on_click=dialog.close).classes('bg-gray-500')
+                def proceed_with_upload():
+                    location_input.value = location_dialog_input.value
+                    radius_input.value = radius_dialog_input.value
+                    dialog.close()
+                    uploader.run_method('pickFiles')
+                ui.button('Continue', on_click=proceed_with_upload).classes(PURPLE_BUTTON_SM)
+        
+        dialog.open()
 
     async def refresh_resumes():
         try:
@@ -37,22 +59,31 @@ def resumes_page():
                 else:
                     for resume in resumes:
                         card = ui.card().tight().classes(
-                            'w-full h-32 flex items-center justify-center shadow-lg border border-purple-200 dark:border-purple-800')
+                            'w-full h-40 flex items-center justify-center shadow-lg border border-purple-200 dark:border-purple-800')
                         with card:
-                            ui.label(f'{resume.id}. {resume.file_name}').classes(
-                                'text-purple-800 dark:text-purple-200')
-                            if not resume.keywords:
-                                ui.label('Processing...').classes('text-sm text-yellow-500')
-                            with ui.row().classes('mt-2'):
-                                if resume.keywords:
-                                    ui.icon('list', color='purple').on('click',
-                                        lambda r=resume: show_string_list(r.keywords, "Keywords"))
-                                else:
-                                    ui.icon('list', color='gray').classes('opacity-50').tooltip('Keywords being processed...')
-                                ui.icon('download', color='purple').on('click',
-                                    lambda r=resume: download_resume(r.id))
-                                ui.icon('delete', color='purple').on('click',
-                                    lambda r=resume: delete_resume(r.id))
+                            with ui.column().classes('w-full p-4'):
+                                ui.label(f'{resume.id}. {resume.file_name}').classes(
+                                    'text-purple-800 dark:text-purple-200 truncate max-w-full font-semibold')
+                                
+                                # Location and radius info
+                                if resume.location or resume.radius:
+                                    location_text = resume.location or "Any location"
+                                    radius_text = f" ({resume.radius}km radius)" if resume.radius else ""
+                                    ui.label(f"📍 {location_text}{radius_text}").classes('text-sm text-gray-600 dark:text-gray-400')
+                                
+                                if not resume.keywords:
+                                    ui.label('Processing...').classes('text-sm text-yellow-500')
+                                
+                                with ui.row().classes('mt-2 justify-center'):
+                                    if resume.keywords:
+                                        ui.icon('list', color='purple').on('click',
+                                            lambda r=resume: show_string_list(r.keywords, "Keywords")).classes('cursor-pointer')
+                                    else:
+                                        ui.icon('list', color='gray').classes('opacity-50').tooltip('Keywords being processed...')
+                                    ui.icon('download', color='purple').on('click',
+                                        lambda r=resume: download_resume(r.id)).classes('cursor-pointer')
+                                    ui.icon('delete', color='purple').on('click',
+                                        lambda r=resume: delete_resume(r.id)).classes('cursor-pointer')
                     ui.button('Add New Resume', on_click=open_uploader).classes(f'{PURPLE_BUTTON_SM} mt-9 mx-auto h-8')
         except Exception as e:
             logging.error(f'Failed to fetch resumes: {str(e)}')
@@ -83,11 +114,28 @@ def resumes_page():
 
     async def download_resume(resume_id: int):
         try:
-            file_content = await api_client.download_resume(resume_id)
+            resumes = await api_client.get_resumes()
+            resume = next((r for r in resumes if r.id == resume_id), None)
+            if not resume:
+                try:
+                    ui.notify('Resume not found', color='red')
+                except Exception:
+                    logging.error('Resume not found (notification failed)')
+                return
             try:
-                ui.notify('Download functionality would be implemented here', color='blue')
+                ui.notify('Downloading resume...', color='blue')
             except Exception:
-                logging.info('Download initiated (notification failed)')
+                logging.info('Download started (notification failed)')
+            file_content = await api_client.download_resume(resume_id)
+            file_b64 = base64.b64encode(file_content).decode()
+            filename = resume.file_name
+            mime_type = 'application/pdf' if filename.lower().endswith('.pdf') else 'application/octet-stream'
+            ui.download(file_content, filename)
+            try:
+                ui.notify(f'Downloaded {filename} successfully', color='green')
+            except Exception:
+                logging.info(f'Download successful: {filename} (notification failed)')
+                
         except Exception as e:
             logging.error(f'Failed to download resume: {str(e)}')
             try:
@@ -118,7 +166,7 @@ def show_string_list(strings: List[str], title: str = "Keywords"):
 
 current_page_refresh = None
 
-async def handle_upload(file, refresh_callback=None):
+async def handle_upload(file, location, radius, refresh_callback=None):
     """Handle file upload with proper error handling"""
     if not file:
         try:
@@ -137,7 +185,9 @@ async def handle_upload(file, refresh_callback=None):
         result = await api_client.upload_resume(
             file_name=file.name,
             file_content=file.content.read(),
-            file_type=file.type
+            file_type=file.type,
+            location=location,  # Include location in the upload
+            radius=radius       # Include radius in the upload
         )
         
         if result.get('success'):

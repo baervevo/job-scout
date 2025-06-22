@@ -12,19 +12,18 @@ from sqlalchemy import select
 async def update_resume_keywords(resume: ResumeKeywordData) -> None:
     try:
         async with async_session_maker() as db_session:
-            async with db_session.begin():
-                result = await db_session.execute(
-                    select(ResumeSchema).filter(ResumeSchema.id == resume.id)
-                )
-                existing_resume = result.scalars().first()
-                if existing_resume is not None:
-                    existing_resume.keywords = ",".join(resume.keywords) if resume.keywords else ""
-                    existing_resume.embedding = ",".join(map(str, resume.embedding)) if resume.embedding else ""
-                    await db_session.commit()
-                    await db_session.refresh(existing_resume)
-                    logger.info(f"Updated keywords for resume ID {resume.id}: {len(resume.keywords)} keywords")
-                    return
-                logger.error(f"Resume with ID {resume.id} not found in the database.")
+            result = await db_session.execute(
+                select(ResumeSchema).filter(ResumeSchema.id == resume.id)
+            )
+            existing_resume = result.scalars().first()
+            if existing_resume is not None:
+                existing_resume.keywords = ",".join(resume.keywords) if resume.keywords else ""
+                existing_resume.embedding = ",".join(map(str, resume.embedding)) if resume.embedding else ""
+                await db_session.commit()
+                await db_session.refresh(existing_resume)
+                logger.info(f"Updated keywords for resume ID {resume.id}: {len(resume.keywords)} keywords")
+                return
+            logger.error(f"Resume with ID {resume.id} not found in the database.")
     except Exception as e:
         logger.error(f"Error updating resume keywords for {resume.id}: {str(e)}")
 
@@ -34,18 +33,31 @@ async def generate_query(resume: ResumeKeywordData) -> None:
         if not resume.keywords:
             logger.warning(f"No keywords available for resume {resume.id}, skipping query generation")
             return
+        async with async_session_maker() as db_session:
+            result = await db_session.execute(
+                select(ResumeSchema).filter(ResumeSchema.id == resume.id)
+            )
+            resume_db = result.scalars().first()
+            if not resume_db:
+                logger.error(f"Resume {resume.id} not found in database for query generation")
+                return
+                
+            location = resume_db.location
+            radius = str(resume_db.radius) if resume_db.radius is not None else None
+        
         top_keywords = resume.keywords
         query = Query(
             keywords=tuple(top_keywords),
-            location=None,
+            location=location,
+            radius=radius
         )
-        logger.info(f"Generated query for resume {resume.id}: {query}")
+        logger.info(f"Generated query for resume {resume.id}: keywords={query.keywords}, location={query.location}, radius={query.radius}")
         query_manager = get_query_manager()
         query_manager.add_query(query)
         active_queries = list(query_manager.get_queries())
         logger.info(f"Total active queries after adding: {len(active_queries)}")
         for i, q in enumerate(active_queries):
-            logger.info(f"Query {i+1}: keywords={q.keywords}, location={q.location}")
+            logger.info(f"Query {i+1}: keywords={q.keywords}, location={q.location}, radius={q.radius}")
             
     except Exception as e:
         logger.error(f"Error generating query for resume {resume.id}: {str(e)}")
