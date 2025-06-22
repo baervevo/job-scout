@@ -1,7 +1,7 @@
 """add_location_radius_to_resumes
 
 Revision ID: c12529f517cb
-Revises: ce8983441352
+Revises: 6b635902536e
 Create Date: 2025-06-22 16:19:23.197954
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'c12529f517cb'
-down_revision: Union[str, None] = 'ce8983441352'
+down_revision: Union[str, None] = '6b635902536e'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
