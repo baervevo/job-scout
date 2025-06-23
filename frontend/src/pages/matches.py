@@ -119,10 +119,9 @@ def open_match_details(match_data: dict):
                     ui.label(f'{job_title} at {company}').classes('text-2xl mb-4')
                 similarity = match_info.get('cosine_similarity', 0)
                 ui.label(f"Match Score: {similarity * 100:.2f}%").classes('text-xl mb-4')
-                resume_keywords = resume_info.get('keywords', [])
                 listing_keywords = listing_info.get('keywords', [])
-                missing_keywords = set(listing_keywords) - set(resume_keywords)
-                fulfilled_keywords = set(resume_keywords) & set(listing_keywords)
+                missing_keywords = match_info.get('missing_keywords', [])
+                fulfilled_keywords = set(listing_keywords) - set(missing_keywords)
 
                 ui.label("Listing keywords:").classes('font-semibold text-lg mb-2')
                 create_keywords_chips(missing_keywords, fulfilled_keywords)
@@ -140,10 +139,6 @@ def open_match_details(match_data: dict):
                 matched_at = match_info.get('matched_at')
                 if matched_at:
                     ui.label(f"Matched: {matched_at}").classes('text-sm text-gray-500')
-                description = listing_info.get('description', '')
-                if description:
-                    ui.label("Job Description:").classes('font-semibold mt-4 mb-2')
-                    ui.label(description).classes('text-sm')
                 
                 ui.button('Close', on_click=dialog.close).classes(f'{PURPLE_BUTTON} mt-6')
     dialog.open()
