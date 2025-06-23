@@ -24,7 +24,7 @@ def render_features():
          'Cosine similarity algorithms match you with jobs based on skill alignment and missing keyword analysis.'),
         ('eva-flash-outline', 'Real-Time Processing',
          'Upload your resume and get instant keyword processing with automatic job search generation.'),
-        ('eva-lock', 'Match Analytics',
+        ('eva-checkmark-square-outline', 'Match Analytics',
          'View detailed match scores, missing skills, and AI-generated summaries for each job opportunity.'),
         ('eva-shield-outline', 'Secure & Private', 'Your data is protected with encrypted passwords and secure session management.')
     ]

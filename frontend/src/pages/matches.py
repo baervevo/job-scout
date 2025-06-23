@@ -135,13 +135,11 @@ def open_match_details(match_data: dict):
                 ui.label(f"Match Score: {similarity * 100:.2f}%").classes('text-xl mb-4')
                 
                 # Keywords comparison
-                resume_keywords = resume_info.get('keywords', [])
                 listing_keywords = listing_info.get('keywords', [])
                 missing_keywords = match_info.get('missing_keywords', [])
-                
-                if resume_keywords or listing_keywords:
-                    ui.label("Skills Analysis:").classes('font-semibold text-lg mb-2')
-                    create_keywords_chips(missing_keywords, listing_keywords, resume_keywords)
+
+                ui.label("Listing keywords:").classes('font-semibold text-lg mb-2')
+                create_keywords_chips(missing_keywords, listing_keywords)
                 
                 # AI Summary
                 summary = match_info.get('summary', 'No summary available')
@@ -170,23 +168,13 @@ def open_match_details(match_data: dict):
     dialog.open()
 
 
-def create_keywords_chips(missing_keywords: List[str], listing_keywords: List[str], resume_keywords: List[str]):
-    """Create keyword chips showing missing and fulfilled keywords"""
-    with ui.column().classes('gap-4'):
-        # Missing keywords (red)
-        if missing_keywords:
-            with ui.row().classes('flex-wrap gap-2'):
-                ui.label('Missing Skills:').classes('text-sm font-semibold text-red-400')
-                for kw in missing_keywords:
-                    ui.chip(kw).classes('bg-transparent border-2 border-red-800 text-white font-mono')
-        
-        # Fulfilled keywords (green)
-        fulfilled_keywords = set(listing_keywords) - set(missing_keywords)
-        if fulfilled_keywords:
-            with ui.row().classes('flex-wrap gap-2'):
-                ui.label('Matching Skills:').classes('text-sm font-semibold text-green-400')
-                for kw in fulfilled_keywords:
-                    ui.chip(kw).classes('bg-transparent border-2 border-green-800 text-white font-mono')
+def create_keywords_chips(missing_keywords: List[str], keywords: List[str]):
+    with ui.row():
+        for kw in missing_keywords:
+            ui.chip(kw).classes('bg-transparent border-2 border-red-800 text-white font-mono')
+        fullfilled_keywords = set(keywords) - set(missing_keywords)
+        for kw in fullfilled_keywords:
+            ui.chip(kw).classes('bg-transparent border-2 border-green-800 text-white font-mono')
 
 
 def interpolate_color(value: float, saturation_boost: float = 1.5, brightness_factor: float = 0.6) -> str:
