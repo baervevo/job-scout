@@ -20,15 +20,12 @@ def matches_page():
     async def load_matches():
         """Load matches from the API"""
         try:
-            # Show loading message
             container.clear()
             with container:
                 ui.label('Loading matches...').classes('text-lg')
             
-            # Fetch matches from API
             matches_data = await api_client.get_matches()
             
-            # Clear loading message and display results
             container.clear()
             
             with container:
@@ -36,11 +33,10 @@ def matches_page():
                     ui.label('No matches found. Upload a resume to start finding job matches!').classes('text-lg text-center')
                     return
                 
-                # Display matches
                 ui.label(f'Found {len(matches_data)} job matches').classes('text-2xl font-bold mb-4')
                 
                 for match_data in matches_data:
-                    create_match_card(match_data, container)
+                    await create_match_card(match_data.get("id"), container)
                     
         except Exception as e:
             container.clear()
@@ -49,34 +45,29 @@ def matches_page():
                 ui.button('Retry', on_click=lambda: ui.timer(0.1, load_matches, once=True)).classes(PURPLE_BUTTON)
             logging.error(f'Error loading matches: {str(e)}')
     
-    # Initial load using timer for proper context
     ui.timer(0.1, load_matches, once=True)
 
 
-def create_match_card(match_data: dict, parent_container):
+async def create_match_card(match_id: int, parent_container):
     """Create a match card from API data"""
-    match_info = match_data
-    listing_info = match_data.get('listing', {})
+    match_info = await api_client.get_match_details(match_id)
+    listing_info = match_info.get('listing', {})
     
     if not listing_info:
-        return  # Skip if no listing data
+        return
     
     with parent_container:
         card = ui.card().tight().classes('w-full cursor-pointer hover:bg-gray-800 relative z-10 mb-4')
-        card.on("click", lambda: open_match_details(match_data))
+        card.on("click", lambda: open_match_details(match_info))
         
         with card:
             with ui.column().classes('p-4'):
-                # Top row with similarity score and job info
                 with ui.row().classes('w-full items-start justify-between'):
-                    # Left side: Similarity score and job details
                     with ui.row().classes('items-center flex-1'):
-                        # Similarity score
                         similarity = match_info.get('cosine_similarity', 0)
                         color = interpolate_color(similarity, saturation_boost=1, brightness_factor=1)
                         ui.label(f'{similarity * 100:.0f}%').classes('text-7xl mr-4').style(f'color: {color}')
                         
-                        # Job details
                         with ui.column().classes('flex-1'):
                             ui.label(listing_info.get('title', 'Unknown Position')).classes('text-3xl font-bold mb-2')
                             with ui.row().style('gap: 8px; align-items: center;'):
@@ -99,7 +90,6 @@ def create_match_card(match_data: dict, parent_container):
                                     ui.icon('attach_money').style('margin: 0')
                                     ui.label(salary)
 
-                # Missing keywords section
                 missing_keywords = match_info.get('missing_keywords', [])
                 if missing_keywords:
                     with ui.row().classes('flex-wrap gap-2 mt-4'):
@@ -118,8 +108,6 @@ def open_match_details(match_data: dict):
         with ui.scroll_area().classes('w-full h-full'):
             with ui.column().classes('p-6'):
                 ui.label('Match Details').classes('text-4xl font-bold mb-4')
-                
-                # Job info
                 job_title = listing_info.get('title', 'Unknown Position')
                 company = listing_info.get('company', 'Unknown Company')
                 job_link = listing_info.get('link', '')
@@ -129,25 +117,20 @@ def open_match_details(match_data: dict):
                         'text-2xl text-purple-400 no-underline mb-4')
                 else:
                     ui.label(f'{job_title} at {company}').classes('text-2xl mb-4')
-                
-                # Similarity score
                 similarity = match_info.get('cosine_similarity', 0)
                 ui.label(f"Match Score: {similarity * 100:.2f}%").classes('text-xl mb-4')
-                
-                # Keywords comparison
+                resume_keywords = resume_info.get('keywords', [])
                 listing_keywords = listing_info.get('keywords', [])
-                missing_keywords = match_info.get('missing_keywords', [])
+                missing_keywords = set(listing_keywords) - set(resume_keywords)
+                fulfilled_keywords = set(resume_keywords) & set(listing_keywords)
 
                 ui.label("Listing keywords:").classes('font-semibold text-lg mb-2')
-                create_keywords_chips(missing_keywords, listing_keywords)
+                create_keywords_chips(missing_keywords, fulfilled_keywords)
                 
-                # AI Summary
                 summary = match_info.get('summary', 'No summary available')
                 if summary:
                     ui.label("AI Analysis:").classes('font-semibold text-lg mb-2 mt-4')
                     ui.label(summary).classes('mb-4')
-                
-                # Additional details
                 ui.separator().classes('my-4')
                 ui.label("Details:").classes('font-semibold')
                 
@@ -157,8 +140,6 @@ def open_match_details(match_data: dict):
                 matched_at = match_info.get('matched_at')
                 if matched_at:
                     ui.label(f"Matched: {matched_at}").classes('text-sm text-gray-500')
-                
-                # Job description
                 description = listing_info.get('description', '')
                 if description:
                     ui.label("Job Description:").classes('font-semibold mt-4 mb-2')
@@ -168,12 +149,11 @@ def open_match_details(match_data: dict):
     dialog.open()
 
 
-def create_keywords_chips(missing_keywords: List[str], keywords: List[str]):
+def create_keywords_chips(missing_keywords: List[str], fulfilled_keywords: List[str]):
     with ui.row():
         for kw in missing_keywords:
             ui.chip(kw).classes('bg-transparent border-2 border-red-800 text-white font-mono')
-        fullfilled_keywords = set(keywords) - set(missing_keywords)
-        for kw in fullfilled_keywords:
+        for kw in fulfilled_keywords:
             ui.chip(kw).classes('bg-transparent border-2 border-green-800 text-white font-mono')
 
 

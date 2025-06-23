@@ -26,26 +26,22 @@ class ListingProcessor(Processor):
         prompt = PROMPT_LISTING_KEYWORDS.format(listing.description)
 
         try:
-            # Use non-blocking async Ollama call
             listing_kw = await ollama_api_call_async(
                 prompt,
                 model=self.llm_model_name
             )
 
             if listing_kw is None:
-                # Only happens if Ollama is disabled
                 logger.info(f"Ollama is disabled, using fallback keyword extraction for listing {listing.id}")
                 fallback_keywords = self.extract_keywords(listing.description, top_n=8)
                 kw_list = fallback_keywords
                 listing_vec_text = ", ".join(fallback_keywords)
             else:
-                # Normal LLM processing
                 listing_kw = listing_kw.lower().strip()
                 kw_list = kw_text_to_list(listing_kw)
                 listing_vec_text = listing_kw
 
         except Exception as e:
-            # Only fall back on actual errors
             logger.warning(f"Ollama failed for listing {listing.id} ({str(e)}), using fallback keyword extraction")
             fallback_keywords = self.extract_keywords(listing.description, top_n=8)
             kw_list = fallback_keywords

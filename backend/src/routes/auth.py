@@ -54,7 +54,6 @@ async def register(
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
         
-        # Hash the password before storing
         hashed_password = hash_password(password)
         new_user = UserSchema(login=login, password=hashed_password)
         db.add(new_user)

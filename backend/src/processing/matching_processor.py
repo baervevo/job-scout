@@ -77,12 +77,10 @@ class MatchingProcessor(Processor):
             if not resume_keywords or not listing_keywords:
                 return listing_keywords if listing_keywords else []
             
-            # Fast fallback calculation
             resume_set = set(kw.lower().strip() for kw in resume_keywords)
             listing_set = set(kw.lower().strip() for kw in listing_keywords)
             missing_simple = list(listing_set - resume_set)
             
-            # Try LLM enhancement
             try:
                 resumes_kw_joined = ", ".join(resume_keywords)
                 listings_kw_joined = ", ".join(listing_keywords)
@@ -95,7 +93,6 @@ class MatchingProcessor(Processor):
                 )
                 
                 if missing_kw is None:
-                    # Ollama disabled
                     logger.debug("Ollama disabled, using simple set-based keyword matching")
                     return missing_simple
                     
@@ -121,7 +118,6 @@ class MatchingProcessor(Processor):
             if not resume_keywords or not listing_keywords:
                 return "Unable to generate summary due to missing keywords"
             
-            # Try LLM summary
             try:
                 resumes_kw_joined = ", ".join(resume_keywords)
                 listings_kw_joined = ", ".join(listing_keywords)
@@ -134,7 +130,6 @@ class MatchingProcessor(Processor):
                 )
                 
                 if summary is None:
-                    # Ollama disabled
                     logger.debug("Ollama disabled, using fallback summary")
                 elif summary and len(summary.strip()) > 10:
                     return summary.strip()
@@ -142,7 +137,6 @@ class MatchingProcessor(Processor):
             except Exception as llm_error:
                 logger.debug(f"LLM summary generation failed: {str(llm_error)}, using fallback")
             
-            # Simple fallback summary
             overlap = set(kw.lower() for kw in resume_keywords) & set(kw.lower() for kw in listing_keywords)
             return f"The candidate's resume shows {len(overlap)} matching skills out of {len(listing_keywords)} required. Key overlapping areas include: {', '.join(list(overlap)[:5])}."
             

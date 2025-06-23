@@ -14,8 +14,8 @@ class Resume(Base):
     keywords = Column(String, nullable=True)
     embedding = Column(String, nullable=True)
     last_evaluated_at = Column(DateTime(timezone=True), nullable=True)
-    location = Column(String, nullable=True)  # Preferred job location
-    radius = Column(Integer, nullable=True)   # Search radius in kilometers
+    location = Column(String, nullable=True)
+    radius = Column(Integer, nullable=True)
 
     user = relationship("User", back_populates="resumes")
     matches = relationship("Match", back_populates="resume", cascade="all, delete-orphan")
