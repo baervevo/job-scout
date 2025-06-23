@@ -2,9 +2,9 @@ import threading
 import asyncio
 from typing import Tuple, List, Callable
 
-from backend.src.models.resume.resume_keyword_data import ResumeKeywordData
-from backend.src.models.listing.listing_keyword_data import ListingKeywordData
-from backend.src.models.match import Match
+from src.models.resume.resume_keyword_data import ResumeKeywordData
+from src.models.listing.listing_keyword_data import ListingKeywordData
+from src.models.match import Match
 from src.processing.matching_processor import MatchingProcessor
 
 from src.utils.logger import logger

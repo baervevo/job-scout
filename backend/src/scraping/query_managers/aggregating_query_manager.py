@@ -1,7 +1,7 @@
 from typing import Generator, Set
 import asyncio
 
-from backend.src.models.query import Query
+from src.models.query import Query
 from src.scraping.query_managers.query_manager import QueryManager
 from src.utils.logger import logger
 

@@ -1,7 +1,7 @@
 import os
 
 from nicegui import ui
-from frontend.config import settings
+from config import settings
 
 
 def main():

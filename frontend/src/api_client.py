@@ -2,8 +2,8 @@
 import logging
 from typing import List, Optional
 import httpx
-from frontend.src.models import Match, ListingKeywordData, Resume
-from frontend.config import settings
+from src.models import Match, ListingKeywordData, Resume
+from config import settings
 
 
 class APIClient:

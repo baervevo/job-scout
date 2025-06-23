@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 import ollama
-from backend.config import settings
+from config import settings
 
 
 def clean_html_text(text: str) -> str:

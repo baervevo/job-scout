@@ -3,16 +3,16 @@ from datetime import datetime
 
 import torch
 
-from backend.src.models.listing.listing_keyword_data import ListingKeywordData
-from backend.src.models.resume.resume_keyword_data import ResumeKeywordData
-from backend.src.models.match import Match
+from src.models.listing.listing_keyword_data import ListingKeywordData
+from src.models.resume.resume_keyword_data import ResumeKeywordData
+from src.models.match import Match
 from src.processing.processor import Processor
 from src.prompts.llama3.matching_keywords import PROMPT as KEYWORD_MATCHING_PROMPT
 from src.prompts.llama3.matching_summary import PROMPT as SUMMARY_MATCHING_PROMPT
 from src.utils.logger import logger
 from src.utils.processing_utils import ollama_api_call_async, format_keywords, kw_text_to_list
 
-from backend.config import settings
+from config import settings
 
 class MatchingProcessor(Processor):
     def __init__(self, **kwargs):

@@ -87,7 +87,7 @@ frontend/
 ### Prerequisites
 - Python 3.10+
 - PostgreSQL 12+
-- Docker (optional)
+- Docker (for postgres)
 
 ### Local Development Setup
 
@@ -167,11 +167,11 @@ frontend/
 
 6. **Database Setup**
    ```bash
-   cd backend
-   
-   # Ensure PostgreSQL is running
-   # Create the database specified in your .env file
-   createdb jobscout  # or whatever you named it in POSTGRES_DB
+   # Build the container
+   docker compose build db
+
+   # Start the container
+   docker compose start db
    
    # Run database migrations
    poetry run alembic upgrade head
@@ -186,31 +186,6 @@ frontend/
    # Terminal 2: Start frontend
    cd frontend
    poetry run python src/main.py
-   ```
-
-### Docker Deployment
-
-For Docker deployment, you still need to configure environment files:
-
-1. **Setup Environment Files**
-   ```bash
-   # Copy and configure environment files
-   cp backend/.env.example backend/.env
-   cp frontend/.env.example frontend/.env
-   
-   # Edit the files with your configuration
-   # For Docker, use these settings in backend/.env:
-   POSTGRES_HOST=postgres  # Docker service name
-   API_URL=http://backend:8080  # Docker service name
-   ```
-
-2. **Deploy with Docker**
-   ```bash
-   # Build and start all services
-   docker-compose up --build
-   
-   # Run in background
-   docker-compose up -d
    ```
 
 ## 🔧 Configuration

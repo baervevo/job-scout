@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from typing import Generator
 
-from backend.src.models.query import Query
+from src.models.query import Query
 
 class QueryManager(ABC):
     """

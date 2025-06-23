@@ -1,6 +1,6 @@
 from typing import Optional
 
-from backend.src.models.keyword_data import KeywordData
+from src.models.keyword_data import KeywordData
 
 
 class ResumeKeywordData(KeywordData):

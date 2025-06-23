@@ -1,4 +1,4 @@
-from backend.config import settings
+from config import settings
 
 import logging
 

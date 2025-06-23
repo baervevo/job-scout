@@ -2,7 +2,7 @@ from src.scraping.query_managers.query_manager import QueryManager
 
 from typing import Generator, Set
 
-from backend.src.models.query import Query
+from src.models.query import Query
 
 class SimpleQueryManager(QueryManager):
     _queries: Set[Query]

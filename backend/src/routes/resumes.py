@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from backend.src.models.resume.resume import Resume
+from src.models.resume.resume import Resume
 from src.db.schemas.resume import Resume as ResumeSchema
 from src.db.schemas.user import User
 from src.db.session import get_db
@@ -17,14 +17,14 @@ from src.db.session import get_db
 from src.processing.resume_processing_queue import ResumeProcessingQueue, get_resume_processing_queue
 from src.utils.pdf import extract_text_from_pdf
 
-from backend.config import settings
+from config import settings
 from src.utils.logger import logger
 
 router = APIRouter()
 UPLOAD_DIR = Path(settings.RESUME_DIR)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt"}
+ALLOWED_EXTENSIONS = {".pdf"}
 
 def validate_file(file: UploadFile) -> None:
     if not file.filename:

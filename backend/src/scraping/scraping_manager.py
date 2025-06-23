@@ -1,8 +1,8 @@
 from itertools import chain
 from typing import List, Callable
 
-from backend.src.models.listing.listing_keyword_data import ListingKeywordData
-from backend.src.models.query import Query
+from src.models.listing.listing_keyword_data import ListingKeywordData
+from src.models.query import Query
 from src.scraping.query_managers.query_manager import QueryManager
 from src.scraping.scrapers.listing_scraper import ListingScraper
 

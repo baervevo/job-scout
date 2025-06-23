@@ -2,14 +2,14 @@ import httpx
 from typing import List
 
 from src.scraping.scrapers.listing_scraper import ListingScraper
-from backend.src.models.listing.listing import Listing
-from backend.src.models.query import Query
+from src.models.listing.listing import Listing
+from src.models.query import Query
 from src.utils.logger import logger
 from src.utils.salary import parse_salary_range
 from src.utils.processing_utils import clean_html_text
 from dateutil import parser
 
-from backend.config import settings
+from config import settings
 
 class JoobleScraper(ListingScraper):
     _api_key: str
