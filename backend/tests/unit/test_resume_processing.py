@@ -35,7 +35,7 @@ class TestResumeProcessor:
                     result = await processor.process_resume(sample_resume)
                     
                     assert isinstance(result, ResumeKeywordData)
-                    assert result.id == sample_resume.id  # Both should be strings
+                    assert result.id == int(sample_resume.id)
                     assert result.user_id == sample_resume.user_id  # Both should be integers
                     assert result.keywords == ["python", "django", "fastapi"]
                     assert len(result.embedding) == 5
