@@ -37,7 +37,7 @@ class JoobleScraper(ListingScraper):
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 return self._parse_response(response.json())
-            except httpx.HTTPError as e:
+            except (httpx.HTTPError, ValueError) as e:
                 logger.warning(f"Request failed for query {query}: {str(e)}")
                 return []
 
@@ -45,6 +45,16 @@ class JoobleScraper(ListingScraper):
         listings = []
         for job in data.get("jobs", []):
             salary_min, salary_max, currency = parse_salary_range(job.get("salary"))
+            
+            # Handle date parsing safely
+            updated_date = job.get("updated", "")
+            try:
+                created_at = parser.isoparse(updated_date) if updated_date else None
+                updated_at = parser.isoparse(updated_date) if updated_date else None
+            except (ValueError, TypeError):
+                created_at = None
+                updated_at = None
+            
             listings.append(Listing(
                 id=None, # ID will be set by the database
                 internal_id=str(job.get("id")),
@@ -56,8 +66,8 @@ class JoobleScraper(ListingScraper):
                 salary_max=salary_max,
                 currency=currency,
                 remote="remote" in job.get("location", "").lower(),
-                created_at=parser.isoparse(job.get("updated", "")),
-                updated_at=parser.isoparse(job.get("updated", "")),
+                created_at=created_at,
+                updated_at=updated_at,
                 link=job.get("link", "")
             ))
         return listings
