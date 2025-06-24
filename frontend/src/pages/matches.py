@@ -114,14 +114,15 @@ def open_match_details(match_data: dict):
                 
                 if job_link:
                     ui.link(f'{job_title} at {company}', job_link, new_tab=True).classes(
-                        'text-2xl text-purple-400 no-underline mb-4')
+                        'text-2xl text-purple-400 mb-4')
                 else:
                     ui.label(f'{job_title} at {company}').classes('text-2xl mb-4')
                 similarity = match_info.get('cosine_similarity', 0)
                 ui.label(f"Match Score: {similarity * 100:.2f}%").classes('text-xl mb-4')
                 listing_keywords = listing_info.get('keywords', [])
-                missing_keywords = match_info.get('missing_keywords', [])
-                fulfilled_keywords = set(listing_keywords) - set(missing_keywords)
+                resume_keywords = resume_info.get('keywords', [])
+                missing_keywords = set(listing_keywords) - set(resume_keywords)
+                fulfilled_keywords = set(listing_keywords) & set(resume_keywords)
 
                 ui.label("Listing keywords:").classes('font-semibold text-lg mb-2')
                 create_keywords_chips(missing_keywords, fulfilled_keywords)
